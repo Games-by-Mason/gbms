@@ -1,0 +1,10 @@
+.{
+    .name = .gbms,
+    .version = "0.0.0",
+    .paths = .{
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+}
