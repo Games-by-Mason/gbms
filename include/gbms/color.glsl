@@ -7,7 +7,7 @@ float colorLinearToSrgb(float linear) {
     if (linear <= 0.031308) {
         return 12.92 * linear;
     } else {
-        return 1.055 * pow(linear, 1.0 / 2.4) - 0.055;
+        return fma(1.055, pow(linear, 1.0 / 2.4), -0.055);
     }
 }
 
@@ -82,7 +82,7 @@ vec4 colorUnormToFloat(uvec4 unorm) {
 }
 
 uint colorFloatToUnorm(float f) {
-    return uint(f * 255.0 + 0.5);
+    return uint(fma(f, 255.0, 0.5));
 }
 
 uvec3 colorFloatToUnorm(vec3 f) {

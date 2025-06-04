@@ -1,6 +1,8 @@
 #ifndef INCLUDE_GBMS_HASH
 #define INCLUDE_GBMS_HASH
 
+#include "constants.glsl"
+
 // Balanced performance and quality. Good default. The 32-bit "RXS-M-XS" variant of Melissa
 // O'Neill's PCG PRNG, adapted for use as a hash function.
 //
@@ -21,6 +23,22 @@ uint hashPcg(uvec3 i) {
 
 uint hashPcg(uvec4 i) {
     return hashPcg(hashPcg(hashPcg(hashPcg(i.x) + i.y) + i.z) + i.w);
+}
+
+float hashPcg01(uint i) {
+    return float(hashPcg(i)) / UINT_MAX;
+}
+
+float hashPcg01(uvec2 i) {
+    return float(hashPcg(i)) / UINT_MAX;
+}
+
+float hashPcg01(uvec3 i) {
+    return float(hashPcg(i)) / UINT_MAX;
+}
+
+float hashPcg01(uvec4 i) {
+    return float(hashPcg(i)) / UINT_MAX;
 }
 
 #endif
