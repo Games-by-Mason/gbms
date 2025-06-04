@@ -25,20 +25,4 @@ uint hashPcg(uvec4 i) {
     return hashPcg(hashPcg(hashPcg(hashPcg(i.x) + i.y) + i.z) + i.w);
 }
 
-float hashPcg01(uint i) {
-    return float(hashPcg(i)) / UINT_MAX;
-}
-
-float hashPcg01(uvec2 i) {
-    return float(hashPcg(i)) / UINT_MAX;
-}
-
-float hashPcg01(uvec3 i) {
-    return float(hashPcg(i)) / UINT_MAX;
-}
-
-float hashPcg01(uvec4 i) {
-    return float(hashPcg(i)) / UINT_MAX;
-}
-
 #endif

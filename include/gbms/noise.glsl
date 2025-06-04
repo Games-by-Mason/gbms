@@ -1,13 +1,13 @@
 #ifndef INCLUDE_GBMS_NOISE
 #define INCLUDE_GBMS_NOISE
 
-#include "hash.glsl"
+#include "rand.glsl"
 #include "ease.glsl"
 
 float noiseValue(float f) {
     float a = floor(f);
     float t = fract(f);
-    return mix(hashPcg01(floatBitsToInt(a)), hashPcg01(floatBitsToInt(a + 1.0)), easeSmootherstep(t));
+    return mix(rand(a), rand(a + 1.0), easeSmootherstep(t));
 }
 
 float noiseValue(vec2 f) {
@@ -21,10 +21,10 @@ float noiseValue(vec2 f) {
     vec2 c11 = c00 + vec2(1, 1);
 
     // Get the samples
-    float s00 = hashPcg01(floatBitsToInt(c00));
-    float s10 = hashPcg01(floatBitsToInt(c10));
-    float s01 = hashPcg01(floatBitsToInt(c01));
-    float s11 = hashPcg01(floatBitsToInt(c11));
+    float s00 = rand(c00);
+    float s10 = rand(c10);
+    float s01 = rand(c01);
+    float s11 = rand(c11);
 
     // Perform bilinear interpolation with a smootherstep factor
     vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), easeSmootherstep(t.y));
@@ -49,14 +49,14 @@ float noiseValue(vec3 f) {
     vec3 c111 = c000 + vec3(1, 1, 1);
 
     // Get the samples
-    float s000 = hashPcg01(floatBitsToInt(c000));
-    float s100 = hashPcg01(floatBitsToInt(c100));
-    float s010 = hashPcg01(floatBitsToInt(c010));
-    float s110 = hashPcg01(floatBitsToInt(c110));
-    float s001 = hashPcg01(floatBitsToInt(c001));
-    float s101 = hashPcg01(floatBitsToInt(c101));
-    float s011 = hashPcg01(floatBitsToInt(c011));
-    float s111 = hashPcg01(floatBitsToInt(c111));
+    float s000 = rand(c000);
+    float s100 = rand(c100);
+    float s010 = rand(c010);
+    float s110 = rand(c110);
+    float s001 = rand(c001);
+    float s101 = rand(c101);
+    float s011 = rand(c011);
+    float s111 = rand(c111);
 
     // Perform trilinear interpolation with a smootherstep factor
     vec4 i00_i10_i01_i11 = mix(
@@ -98,22 +98,22 @@ float noiseValue(vec4 f) {
     vec4 c1111 = c0000 + vec4(1, 1, 1, 1);
 
     // Get the samples
-    float s0000 = hashPcg01(floatBitsToInt(c0000));
-    float s1000 = hashPcg01(floatBitsToInt(c1000));
-    float s0100 = hashPcg01(floatBitsToInt(c0100));
-    float s1100 = hashPcg01(floatBitsToInt(c1100));
-    float s0010 = hashPcg01(floatBitsToInt(c0010));
-    float s1010 = hashPcg01(floatBitsToInt(c1010));
-    float s0110 = hashPcg01(floatBitsToInt(c0110));
-    float s1110 = hashPcg01(floatBitsToInt(c1110));
-    float s0001 = hashPcg01(floatBitsToInt(c0001));
-    float s1001 = hashPcg01(floatBitsToInt(c1001));
-    float s0101 = hashPcg01(floatBitsToInt(c0101));
-    float s1101 = hashPcg01(floatBitsToInt(c1101));
-    float s0011 = hashPcg01(floatBitsToInt(c0011));
-    float s1011 = hashPcg01(floatBitsToInt(c1011));
-    float s0111 = hashPcg01(floatBitsToInt(c0111));
-    float s1111 = hashPcg01(floatBitsToInt(c1111));
+    float s0000 = rand(c0000);
+    float s1000 = rand(c1000);
+    float s0100 = rand(c0100);
+    float s1100 = rand(c1100);
+    float s0010 = rand(c0010);
+    float s1010 = rand(c1010);
+    float s0110 = rand(c0110);
+    float s1110 = rand(c1110);
+    float s0001 = rand(c0001);
+    float s1001 = rand(c1001);
+    float s0101 = rand(c0101);
+    float s1101 = rand(c1101);
+    float s0011 = rand(c0011);
+    float s1011 = rand(c1011);
+    float s0111 = rand(c0111);
+    float s1111 = rand(c1111);
 
     // Perform quadlinear interpolation with a smootherstep factor
     vec4 i000_s100_s010_s110 = mix(
