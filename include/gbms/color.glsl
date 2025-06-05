@@ -102,4 +102,45 @@ uvec4 colorFloatToUnorm(vec4 f) {
     );
 }
 
+
+vec3 colorLinearToOklab(vec3 c)  {
+    vec3 lms = c * mat3(
+        vec3(0.4122214708, 0.5363325363, 0.0514459929),
+        vec3(0.2119034982, 0.6806995451, 0.1073969566),
+        vec3(0.0883024619, 0.2817188376, 0.6299787005)
+    );
+
+    lms = pow(lms, vec3(1.0/3.0));
+
+    return lms * mat3(
+        vec3(0.2104542553, 0.7936177850, -0.0040720468),
+        vec3(1.9779984951, -2.4285922050, 0.4505937099),
+        vec3(0.0259040371, 0.7827717662, - 0.8086757660)
+    );
+}
+
+vec4 colorLinearToOklab(vec4 c)  {
+    return vec4(colorLinearToOklab(c.rgb), c.a);
+}
+
+vec3 colorOklabToLinear(vec3 c)  {
+    vec3 lms = c * mat3(
+        vec3(1.0, +0.3963377774, +0.2158037573),
+        vec3(1.0, -0.1055613458, -0.0638541728),
+        vec3(1.0, -0.0894841775, -1.2914855480)
+    );
+
+    lms = lms * lms * lms;
+
+    return lms * mat3(
+        vec3(+4.0767416621, -3.3077115913, +0.2309699292),
+        vec3(-1.2684380046, +2.6097574011, -0.3413193965),
+        vec3(-0.0041960863, -0.7034186147, +1.7076147010)
+    );
+}
+
+vec4 colorOklabToLinear(vec4 c)  {
+    return vec4(colorOklabToLinear(c.rgb), c.a);
+}
+
 #endif
