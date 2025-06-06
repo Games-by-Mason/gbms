@@ -305,4 +305,49 @@ vec4 colorOkhsvToLinear(vec4 hsv) {
     return vec4(colorOkhsvToLinear(hsv.xyz), hsv.w);
 }
 
+// Converts Okhsv to Oklab.
+//
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#hsv-2
+vec3 colorOklabToOkhsv(vec3 lab) {
+    vec2 LC = vec2(lab.x, length(lab.yz));
+    float h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
+    vec2 ab_ = lab.yz / LC.y;
+
+    vec2 cusp = _colorOklabFindCusp(ab_);
+    vec2 ST_max = _colorOklabToSt(cusp);
+    float S_0 = 0.5;
+    float k = 1.0 - S_0 / ST_max.x;
+
+    float t = ST_max.y / (LC.y + LC.x * ST_max.y);
+    vec2 LC_v = t * LC;
+
+    vec2 LC_vt;
+    LC_vt.x = _colorOklabToeInv(LC_v.x);
+    LC_vt.y = LC_v.y * LC_vt.x / LC_v.x;
+
+    vec3 rgb_scale = colorOklabToLinear(vec3(LC_vt.x, ab_ * LC_vt.y));
+    float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
+    LC /= scale_L;
+
+    LC.y = LC.y * _colorOklabToe(LC.x) / LC.x;
+    LC.x = _colorOklabToe(LC.x);
+
+    float v = LC.x / LC_v.x;
+    float s = (S_0 + ST_max.y) * LC_v.y / fma(ST_max.y, S_0, ST_max.y * k * LC_v.y);
+
+    return vec3(h, s, v);
+}
+
+vec4 colorOklabToOkhsv(vec4 lab) {
+    return vec4(colorOklabToOkhsv(lab.xyz), lab.w);
+}
+
+vec3 colorLinearToOkHsv(vec3 linear) {
+    return colorOklabToOkhsv(colorLinearToOklab(linear));
+}
+
+vec4 colorLinearToOkHsv(vec4 linear) {
+    return vec4(colorOklabToOkhsv(colorLinearToOklab(linear.rgb)), linear.a);
+}
+
 #endif
