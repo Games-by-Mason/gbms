@@ -152,11 +152,6 @@ vec3 colorOklabToLinear(vec3 c)  {
 vec4 colorOklabToLinear(vec4 c)  {
     return vec4(colorOklabToLinear(c.xyz), c.w);
 }
-// Finds the maximum saturation possible for a given hue that fits in sRGB
-// Saturation here is defined as S = C/L
-// a and b must be normalized so a^2 + b^2 == 1
-//
-// Adapted from: https://bottosson.github.io/posts/gamutclipping/
 
 // Returns the maximum saturation for the hue `ab` that fits in sRGB.
 //
@@ -220,6 +215,94 @@ float colorOklabMaxSaturation(vec2 ab) {
     }
 
     return S;
+}
+
+// Finds L and C cusp for an Oklab hue. `ab` must be normalized.
+//
+// Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
+vec2 _colorOklabFindCusp(vec2 ab) {
+    float S_cusp = colorOklabMaxSaturation(ab);
+
+    vec3 rgb_at_max = colorOklabToLinear(vec3(1, S_cusp * ab));
+    float L_cusp = pow(1.0 / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b), 1.0 / 3.0);
+    float C_cusp = L_cusp * S_cusp;
+
+    return vec2(L_cusp , C_cusp);
+}
+
+
+// Toe function for `L_r`.
+// 
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
+float _colorOklabToe(float x) {
+    vec3 k;
+    k.x = 0.206;
+    k.y = 0.03;
+    k.z = (1.0 + k.x) / (1.0 + k.y);
+    float kzx = k.z * x;
+    float term = kzx - k.x;
+    return 0.5 * (term + sqrt(fma(term, term, 4.0 * k.y * kzx)));
+}
+
+// Inverse toe function for `L_r`.
+//
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
+float _colorOklabToeInv(float x) {
+    vec3 k;
+    k.x = 0.206;
+    k.y = 0.03;
+    k.z = (1.0 + k.x) / (1.0 + k.y);
+    return fma(x, x, k.x * x) / (k.z * (x + k.y));
+}
+
+vec2 _colorOklabToSt(vec2 cusp)
+{
+    return vec2(cusp.y / cusp.x, cusp.y / (1 - cusp.x));
+}
+
+
+// Converts Okhsv to Oklab.
+//
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#hsv-2
+vec3 colorOkhsvToOklab(vec3 hsv) {
+    vec2 ab = vec2(cos(2.0 * PI * hsv.x), sin(2.0 * PI * hsv.x));
+    
+    vec2 cusp = _colorOklabFindCusp(ab);
+    vec2 ST_max = _colorOklabToSt(cusp);
+    float S_0 = 0.5;
+    float k = 1.0 - S_0 / ST_max.x;
+
+    float denominator = fma(-ST_max.y, k * hsv.y, S_0 + ST_max.y);
+    vec2 LC_v = hsv.y * vec2(S_0, ST_max.y * S_0) / denominator;
+    LC_v.x = 1.0 - LC_v.x;
+
+    vec2 LC = hsv.z * LC_v;
+
+    // then we compensate for both toe and the curved top part of the triangle:
+    float L_vt = _colorOklabToeInv(LC_v.x);
+    float C_vt = LC_v.y * L_vt / LC_v.x;
+
+    float L_new = _colorOklabToeInv(LC.x);
+    LC.y = LC.y * L_new / LC.x;
+    LC.x = L_new;
+
+    vec3 rgb_scale = colorOklabToLinear(vec3(L_vt, ab * vec2(C_vt)));
+    float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
+    LC *= scale_L;
+
+    return vec3(LC.x, LC.y * ab);
+}
+
+vec4 colorOkhsvToOklab(vec4 hsv) {
+    return vec4(colorOkhsvToOklab(hsv.xyz), hsv.w);
+}
+
+vec3 colorOkhsvToLinear(vec3 hsv) {
+    return colorOklabToLinear(colorOkhsvToOklab(hsv));
+}
+
+vec4 colorOkhsvToLinear(vec4 hsv) {
+    return vec4(colorOkhsvToLinear(hsv.xyz), hsv.w);
 }
 
 #endif
