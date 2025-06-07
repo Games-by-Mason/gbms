@@ -110,8 +110,8 @@ uvec4 colorFloatToUnorm(vec4 f) {
 // Lab = (Lightness, green/red, blue/yellow)
 //
 // Adapted from: https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
-vec3 colorLinearToOklab(vec3 c)  {
-    vec3 lms = c * mat3(
+vec3 colorLinearToOklab(vec3 linear)  {
+    vec3 lms = linear * mat3(
         vec3(0.4122214708, 0.5363325363, 0.0514459929),
         vec3(0.2119034982, 0.6806995451, 0.1073969566),
         vec3(0.0883024619, 0.2817188376, 0.6299787005)
@@ -126,12 +126,12 @@ vec3 colorLinearToOklab(vec3 c)  {
     );
 }
 
-vec4 colorLinearToOklab(vec4 c)  {
-    return vec4(colorLinearToOklab(c.rgb), c.a);
+vec4 colorLinearToOklab(vec4 linear)  {
+    return vec4(colorLinearToOklab(linear.rgb), linear.a);
 }
 
-vec3 colorOklabToLinear(vec3 c)  {
-    vec3 lms = c * mat3(
+vec3 colorOklabToLinear(vec3 lab)  {
+    vec3 lms = lab * mat3(
         vec3(1.0, +0.3963377774, +0.2158037573),
         vec3(1.0, -0.1055613458, -0.0638541728),
         vec3(1.0, -0.0894841775, -1.2914855480)
@@ -149,8 +149,8 @@ vec3 colorOklabToLinear(vec3 c)  {
 // Converts from OkLab to linear. See `colorLinearToOklab
 //
 // Adapted from: https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
-vec4 colorOklabToLinear(vec4 c)  {
-    return vec4(colorOklabToLinear(c.xyz), c.w);
+vec4 colorOklabToLinear(vec4 lab)  {
+    return vec4(colorOklabToLinear(lab.xyz), lab.w);
 }
 
 // Returns the maximum saturation for the hue `ab` that fits in sRGB.
@@ -494,6 +494,56 @@ vec3 colorOkhslToLinear(vec3 hsl) {
 
 vec4 colorOkhslToLinear(vec4 hsl) {
     return vec4(colorOkhslToLinear(hsl.xyz), hsl.w);
+}
+
+// Converts Oklab to Okhsl.
+//
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
+vec3 colorOklabToOkhsl(vec3 lab) {
+    float C = sqrt(lab.y * lab.y + lab.z * lab.z);
+    vec3 Lab_ = vec3(lab.x, lab.yz / C);
+
+    float h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
+
+    float C_0;
+    float C_mid;
+    float C_max;
+    _colorGetCs(Lab_, C_0, C_mid, C_max);
+
+    float mid = 0.8;
+    float mid_inv = 1.25;
+
+    float s;
+    if (C < C_mid) {
+        float k_1 = mid * C_0;
+        float k_2 = (1.0 - k_1 / C_mid);
+
+        float t = C / (k_1 + k_2 * C);
+        s = t * mid;
+    } else {
+        float k_0 = C_mid;
+        float k_1 = (1.0 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
+        float k_2 = (1.0 - (k_1) / (C_max - C_mid));
+
+        float t = (C - k_0) / (k_1 + k_2 * (C - k_0));
+        s = mid + (1.0 - mid) * t;
+    }
+
+    float l = _colorOklabToe(Lab_.x);
+
+    return vec3(h, s, l);
+}
+
+vec4 colorOklabToOkhsl(vec4 lab) {
+    return vec4(colorOklabToOkhsl(lab.xyz), lab.w);
+}
+
+vec3 colorLinearToOkhsl(vec3 linear) {
+    return colorOklabToOkhsl(colorLinearToOklab(linear));
+}
+
+vec4 colorLinearToOkhsl(vec4 linear) {
+    return colorOklabToOkhsl(colorLinearToOklab(linear));
 }
 
 #endif
