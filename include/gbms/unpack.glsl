@@ -1,7 +1,7 @@
 #ifndef INCLUDE_GBMS_UNPACK
 #define INCLUDE_GBMS_UNPACK
 
-uvec4 unpackUintToUvec4(uint u) {
+uvec4 uintToUvec4(uint u) {
 	return uvec4(
 	    (u & 0xFF000000) >> 24,
 	    (u & 0x00FF0000) >> 16,
@@ -10,7 +10,7 @@ uvec4 unpackUintToUvec4(uint u) {
 	);
 }
 
-ivec2 unpackUintToUvec2(uint n) {
+ivec2 uintToUvec2(uint n) {
 	return ivec2(
 		n & 0x0000FFFF,
 		n >> 16

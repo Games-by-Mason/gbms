@@ -1,116 +1,14 @@
-#ifndef INCLUDE_GBMS_COLOR
-#define INCLUDE_GBMS_COLOR
+#ifndef INCLUDE_GBMS_OK
+#define INCLUDE_GBMS_OK
 
 #include "constants.glsl"
-
-float colorLinearToSrgb(float linear) {
-    // The color component transfer function from the SRGB specification:
-    // https://www.w3.org/Graphics/Color/srgb
-    if (linear <= 0.031308) {
-        return 12.92 * linear;
-    } else {
-        return fma(1.055, pow(linear, 1.0 / 2.4), -0.055);
-    }
-}
-
-vec3 colorLinearToSrgb(vec3 linear) {
-    return vec3(
-        colorLinearToSrgb(linear.r),
-        colorLinearToSrgb(linear.g),
-        colorLinearToSrgb(linear.b)
-    );
-}
-
-vec4 colorLinearToSrgb(vec4 linear) {
-    return vec4(
-        colorLinearToSrgb(linear.r),
-        colorLinearToSrgb(linear.g),
-        colorLinearToSrgb(linear.b),
-        linear.a
-    );
-}
-
-
-float colorSrgbToLinear(float srgb) {
-    // The inverse of the color component transfer function from the SRGB specification:
-    // https://www.w3.org/Graphics/Color/srgb
-    if (srgb <= 0.04045) {
-        return srgb / 12.92;
-    } else {
-        return pow((srgb + 0.055) / 1.055, 2.4);
-    }
-}
-
-vec3 colorSrgbToLinear(vec3 srgb) {
-    return vec3(
-        colorSrgbToLinear(srgb.r),
-        colorSrgbToLinear(srgb.g),
-        colorSrgbToLinear(srgb.b)
-    );
-}
-
-vec4 colorSrgbToLinear(vec4 srgb) {
-    return vec4(
-        colorSrgbToLinear(srgb.r),
-        colorSrgbToLinear(srgb.g),
-        colorSrgbToLinear(srgb.b),
-        srgb.a
-    );
-}
-
-float colorUnormToFloat(float unorm) {
-    // Multiplying by the reciprocal is faster than dividing by 255.0, but does not produce exact
-    // results. By multiplying both the numerator and denominator by three, we get exact results for
-    // the full possible range of inputs. This has been verified by looping over all inputs and
-    // comparing the results to the exact form.
-    return unorm * 3.0 * 1.0 / (3.0 * 255.0);
-}
-
-vec3 colorUnormToFloat(uvec3 unorm) {
-    return vec3(
-        colorUnormToFloat(unorm.r),
-        colorUnormToFloat(unorm.g),
-        colorUnormToFloat(unorm.b)
-    );
-}
-
-vec4 colorUnormToFloat(uvec4 unorm) {
-    return vec4(
-        colorUnormToFloat(unorm.r),
-        colorUnormToFloat(unorm.g),
-        colorUnormToFloat(unorm.b),
-        colorUnormToFloat(unorm.a)
-    );
-}
-
-uint colorFloatToUnorm(float f) {
-    return uint(fma(f, 255.0, 0.5));
-}
-
-uvec3 colorFloatToUnorm(vec3 f) {
-    return uvec3(
-        colorFloatToUnorm(f.r),
-        colorFloatToUnorm(f.g),
-        colorFloatToUnorm(f.b)
-    );
-}
-
-uvec4 colorFloatToUnorm(vec4 f) {
-    return uvec4(
-        colorFloatToUnorm(f.r),
-        colorFloatToUnorm(f.g),
-        colorFloatToUnorm(f.b),
-        colorFloatToUnorm(f.a)
-    );
-}
-
 
 // Converts linear to OkLab, a perceptual color space.
 //
 // Lab = (Lightness, green/red, blue/yellow)
 //
 // Adapted from: https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
-vec3 colorLinearToOklab(vec3 linear)  {
+vec3 linearToOklab(vec3 linear)  {
     vec3 lms = linear * mat3(
         vec3(0.4122214708, 0.5363325363, 0.0514459929),
         vec3(0.2119034982, 0.6806995451, 0.1073969566),
@@ -126,11 +24,14 @@ vec3 colorLinearToOklab(vec3 linear)  {
     );
 }
 
-vec4 colorLinearToOklab(vec4 linear)  {
-    return vec4(colorLinearToOklab(linear.rgb), linear.a);
+vec4 linearToOklab(vec4 linear)  {
+    return vec4(linearToOklab(linear.rgb), linear.a);
 }
 
-vec3 colorOklabToLinear(vec3 lab)  {
+// Converts from OkLab to linear. See `linearToOklab`.
+//
+// Adapted from: https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
+vec3 oklabToLinear(vec3 lab)  {
     vec3 lms = lab * mat3(
         vec3(1.0, +0.3963377774, +0.2158037573),
         vec3(1.0, -0.1055613458, -0.0638541728),
@@ -146,11 +47,8 @@ vec3 colorOklabToLinear(vec3 lab)  {
     );
 }
 
-// Converts from OkLab to linear. See `colorLinearToOklab
-//
-// Adapted from: https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
-vec4 colorOklabToLinear(vec4 lab)  {
-    return vec4(colorOklabToLinear(lab.xyz), lab.w);
+vec4 oklabToLinear(vec4 lab)  {
+    return vec4(oklabToLinear(lab.xyz), lab.w);
 }
 
 // Returns the maximum saturation for the hue `ab` that fits in sRGB.
@@ -158,7 +56,7 @@ vec4 colorOklabToLinear(vec4 lab)  {
 // Saturation is `C/L`, `ab` must be normalized. 
 //
 // Adapted from here: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
-float colorOklabMaxSaturation(vec2 ab) {
+float oklabMaxSaturation(vec2 ab) {
     // Max saturation will be when one of r, g or b goes below zero.
 
     // Select different coefficients depending on which component goes below zero first
@@ -220,9 +118,9 @@ float colorOklabMaxSaturation(vec2 ab) {
 // Finds L and C cusp for an Oklab hue. `ab` must be normalized.
 //
 // Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
-vec2 _colorOklabFindCusp(vec2 ab) {
-    float S_cusp = colorOklabMaxSaturation(ab);
-    vec3 rgb_at_max = colorOklabToLinear(vec3(1, S_cusp * ab));
+vec2 _oklabFindCusp(vec2 ab) {
+    float S_cusp = oklabMaxSaturation(ab);
+    vec3 rgb_at_max = oklabToLinear(vec3(1, S_cusp * ab));
     float L_cusp = pow(1.0 / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b), 1.0 / 3.0);
     float C_cusp = L_cusp * S_cusp;
     return vec2(L_cusp , C_cusp);
@@ -231,7 +129,7 @@ vec2 _colorOklabFindCusp(vec2 ab) {
 // Toe function for `L_r`.
 // 
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
-float _colorOklabToe(float x) {
+float _oklabToe(float x) {
     vec3 k;
     k.x = 0.206;
     k.y = 0.03;
@@ -244,7 +142,7 @@ float _colorOklabToe(float x) {
 // Inverse toe function for `L_r`.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
-float _colorOklabToeInv(float x) {
+float _oklabToeInv(float x) {
     vec3 k;
     k.x = 0.206;
     k.y = 0.03;
@@ -252,7 +150,8 @@ float _colorOklabToeInv(float x) {
     return fma(x, x, k.x * x) / (k.z * (x + k.y));
 }
 
-vec2 _colorOklabToSt(vec2 cusp) {
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
+vec2 _oklabToSt(vec2 cusp) {
     return vec2(cusp.y / cusp.x, cusp.y / (1 - cusp.x));
 }
 
@@ -266,7 +165,7 @@ vec2 _colorGetStMid(vec2 ab) {
 }
 
 // Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
-float _colorOklabFindGamutIntersection(float a, float b, float L1, float C1, float L0, vec2 cusp) {
+float _oklabFindGamutIntersection(float a, float b, float L1, float C1, float L0, vec2 cusp) {
     // Find the intersection for upper and lower half separately
     if ((L1 - L0) * cusp.y - (cusp.x - L0) * C1 <= 0.0) {
         return cusp.y * L0 / (C1 * cusp.x + cusp.y * (L0 - L1));
@@ -323,17 +222,17 @@ float _colorOklabFindGamutIntersection(float a, float b, float L1, float C1, flo
     }
 }
 
-float _colorOklabFindGamutIntersection(float a, float b, float L1, float C1, float L0) {
-    return _colorOklabFindGamutIntersection(a, b, L1, C1, L0, _colorOklabFindCusp(vec2(a, b)));
+float _oklabFindGamutIntersection(float a, float b, float L1, float C1, float L0) {
+    return _oklabFindGamutIntersection(a, b, L1, C1, L0, _oklabFindCusp(vec2(a, b)));
 }
 
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
-void _colorGetCs(vec3 Lab, out float C_0, out float C_mid, out float C_max) {
-    vec2 cusp = _colorOklabFindCusp(Lab.yz);
+void _oklabGetCs(vec3 Lab, out float C_0, out float C_mid, out float C_max) {
+    vec2 cusp = _oklabFindCusp(Lab.yz);
 
-    C_max = _colorOklabFindGamutIntersection(Lab.y, Lab.z, Lab.x, 1.0, Lab.x, cusp);
+    C_max = _oklabFindGamutIntersection(Lab.y, Lab.z, Lab.x, 1.0, Lab.x, cusp);
 
-    vec2 ST_max = _colorOklabToSt(cusp);    
+    vec2 ST_max = _oklabToSt(cusp);    
     vec2 L_L_inv = vec2(Lab.x, 1.0 - Lab.x);
     vec2 k_mins = L_L_inv * ST_max;
     float k = C_max / min(k_mins.x, k_mins.y);
@@ -356,14 +255,14 @@ void _colorGetCs(vec3 Lab, out float C_0, out float C_mid, out float C_max) {
 }
 
 
-// Converts Okhsv to Oklab.
+// Converts Okhsv to Oklab. Okhsv is a better hue/saturation/value style color space.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsv-2
-vec3 colorOkhsvToOklab(vec3 hsv) {
+vec3 okhsvToOklab(vec3 hsv) {
     vec2 ab = vec2(cos(2.0 * PI * hsv.x), sin(2.0 * PI * hsv.x));
     
-    vec2 cusp = _colorOklabFindCusp(ab);
-    vec2 ST_max = _colorOklabToSt(cusp);
+    vec2 cusp = _oklabFindCusp(ab);
+    vec2 ST_max = _oklabToSt(cusp);
     float S_0 = 0.5;
     float k = 1.0 - S_0 / ST_max.x;
 
@@ -374,42 +273,42 @@ vec3 colorOkhsvToOklab(vec3 hsv) {
     vec2 LC = hsv.z * LC_v;
 
     // then we compensate for both toe and the curved top part of the triangle:
-    float L_vt = _colorOklabToeInv(LC_v.x);
+    float L_vt = _oklabToeInv(LC_v.x);
     float C_vt = LC_v.y * L_vt / LC_v.x;
 
-    float L_new = _colorOklabToeInv(LC.x);
+    float L_new = _oklabToeInv(LC.x);
     LC.y = LC.y * L_new / LC.x;
     LC.x = L_new;
 
-    vec3 rgb_scale = colorOklabToLinear(vec3(L_vt, ab * vec2(C_vt)));
+    vec3 rgb_scale = oklabToLinear(vec3(L_vt, ab * vec2(C_vt)));
     float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
     LC *= scale_L;
 
     return vec3(LC.x, LC.y * ab);
 }
 
-vec4 colorOkhsvToOklab(vec4 hsv) {
-    return vec4(colorOkhsvToOklab(hsv.xyz), hsv.w);
+vec4 okhsvToOklab(vec4 hsv) {
+    return vec4(okhsvToOklab(hsv.xyz), hsv.w);
 }
 
-vec3 colorOkhsvToLinear(vec3 hsv) {
-    return colorOklabToLinear(colorOkhsvToOklab(hsv));
+vec3 okhsvToLinear(vec3 hsv) {
+    return oklabToLinear(okhsvToOklab(hsv));
 }
 
-vec4 colorOkhsvToLinear(vec4 hsv) {
-    return vec4(colorOkhsvToLinear(hsv.xyz), hsv.w);
+vec4 okhsvToLinear(vec4 hsv) {
+    return vec4(okhsvToLinear(hsv.xyz), hsv.w);
 }
 
-// Converts Oklab to Okhsv.
+// Converts Oklab to Okhsv. See `okhsvToOklab`.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsv-2
-vec3 colorOklabToOkhsv(vec3 lab) {
+vec3 oklabToOkhsv(vec3 lab) {
     vec2 LC = vec2(lab.x, length(lab.yz));
     float h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
     vec2 ab_ = lab.yz / LC.y;
 
-    vec2 cusp = _colorOklabFindCusp(ab_);
-    vec2 ST_max = _colorOklabToSt(cusp);
+    vec2 cusp = _oklabFindCusp(ab_);
+    vec2 ST_max = _oklabToSt(cusp);
     float S_0 = 0.5;
     float k = 1.0 - S_0 / ST_max.x;
 
@@ -417,14 +316,14 @@ vec3 colorOklabToOkhsv(vec3 lab) {
     vec2 LC_v = t * LC;
 
     vec2 LC_vt;
-    LC_vt.x = _colorOklabToeInv(LC_v.x);
+    LC_vt.x = _oklabToeInv(LC_v.x);
     LC_vt.y = LC_v.y * LC_vt.x / LC_v.x;
 
-    vec3 rgb_scale = colorOklabToLinear(vec3(LC_vt.x, ab_ * LC_vt.y));
+    vec3 rgb_scale = oklabToLinear(vec3(LC_vt.x, ab_ * LC_vt.y));
     float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
     LC /= scale_L;
 
-    float toe = _colorOklabToe(LC.x);
+    float toe = _oklabToe(LC.x);
     LC.y = LC.y * toe / LC.x;
     LC.x = toe;
 
@@ -434,32 +333,32 @@ vec3 colorOklabToOkhsv(vec3 lab) {
     return vec3(h, s, v);
 }
 
-vec4 colorOklabToOkhsv(vec4 lab) {
-    return vec4(colorOklabToOkhsv(lab.xyz), lab.w);
+vec4 oklabToOkhsv(vec4 lab) {
+    return vec4(oklabToOkhsv(lab.xyz), lab.w);
 }
 
-vec3 colorLinearToOkHsv(vec3 linear) {
-    return colorOklabToOkhsv(colorLinearToOklab(linear));
+vec3 linearToOkHsv(vec3 linear) {
+    return oklabToOkhsv(linearToOklab(linear));
 }
 
-vec4 colorLinearToOkHsv(vec4 linear) {
-    return vec4(colorOklabToOkhsv(colorLinearToOklab(linear.rgb)), linear.a);
+vec4 linearToOkHsv(vec4 linear) {
+    return vec4(oklabToOkhsv(linearToOklab(linear.rgb)), linear.a);
 }
 
-// Converts Okhsl to Oklab.
+// Converts Okhsl to Oklab. Okhsl is a better hue/saturation/lightness style color space.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
-vec3 colorOkhslToOklab(vec3 hsl) {
+vec3 okhslToOklab(vec3 hsl) {
     if (hsl.z == 1.0) return vec3(1.0, 0.0, 0.0); // White
     if (hsl.z == 0.0) return vec3(0.0); // Black
 
     float r = 2.0 * PI * hsl.x;
-    vec3 Lab = vec3(_colorOklabToeInv(hsl.z), cos(r), sin(r));
+    vec3 Lab = vec3(_oklabToeInv(hsl.z), cos(r), sin(r));
 
     float C_0;
     float C_mid;
     float C_max;
-    _colorGetCs(Lab, C_0, C_mid, C_max);
+    _oklabGetCs(Lab, C_0, C_mid, C_max);
 
     float mid = 0.8;
     float mid_inv = 1.25;
@@ -484,22 +383,22 @@ vec3 colorOkhslToOklab(vec3 hsl) {
     return vec3(Lab.x, Lab.yz * C);
 }
 
-vec4 colorOkhslToOklab(vec4 hsl) {
-    return vec4(colorOkhslToOklab(hsl.xyz), hsl.w);
+vec4 okhslToOklab(vec4 hsl) {
+    return vec4(okhslToOklab(hsl.xyz), hsl.w);
 }
 
-vec3 colorOkhslToLinear(vec3 hsl) {
-    return colorOklabToLinear(colorOkhslToOklab(hsl));
+vec3 okhslToLinear(vec3 hsl) {
+    return oklabToLinear(okhslToOklab(hsl));
 }
 
-vec4 colorOkhslToLinear(vec4 hsl) {
-    return vec4(colorOkhslToLinear(hsl.xyz), hsl.w);
+vec4 okhslToLinear(vec4 hsl) {
+    return vec4(okhslToLinear(hsl.xyz), hsl.w);
 }
 
-// Converts Oklab to Okhsl.
+// Converts Oklab to Okhsl. See `okhslToOklab`.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
-vec3 colorOklabToOkhsl(vec3 lab) {
+vec3 oklabToOkhsl(vec3 lab) {
     float C = sqrt(lab.y * lab.y + lab.z * lab.z);
     vec3 Lab_ = vec3(lab.x, lab.yz / C);
 
@@ -508,7 +407,7 @@ vec3 colorOklabToOkhsl(vec3 lab) {
     float C_0;
     float C_mid;
     float C_max;
-    _colorGetCs(Lab_, C_0, C_mid, C_max);
+    _oklabGetCs(Lab_, C_0, C_mid, C_max);
 
     float mid = 0.8;
     float mid_inv = 1.25;
@@ -529,21 +428,21 @@ vec3 colorOklabToOkhsl(vec3 lab) {
         s = mid + (1.0 - mid) * t;
     }
 
-    float l = _colorOklabToe(Lab_.x);
+    float l = _oklabToe(Lab_.x);
 
     return vec3(h, s, l);
 }
 
-vec4 colorOklabToOkhsl(vec4 lab) {
-    return vec4(colorOklabToOkhsl(lab.xyz), lab.w);
+vec4 oklabToOkhsl(vec4 lab) {
+    return vec4(oklabToOkhsl(lab.xyz), lab.w);
 }
 
 vec3 colorLinearToOkhsl(vec3 linear) {
-    return colorOklabToOkhsl(colorLinearToOklab(linear));
+    return oklabToOkhsl(linearToOklab(linear));
 }
 
 vec4 colorLinearToOkhsl(vec4 linear) {
-    return colorOklabToOkhsl(colorLinearToOklab(linear));
+    return oklabToOkhsl(linearToOklab(linear));
 }
 
 #endif

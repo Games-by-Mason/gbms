@@ -4,13 +4,13 @@
 #include "rand.glsl"
 #include "ease.glsl"
 
-float noiseValue(float f) {
+float valueNoise(float f) {
     float a = floor(f);
     float t = fract(f);
-    return mix(rand(a), rand(a + 1.0), easeSmootherstep(t));
+    return mix(rand(a), rand(a + 1.0), smootherstep(t));
 }
 
-float noiseValue(vec2 f) {
+float valueNoise(vec2 f) {
     // Get the t value
     vec2 t = fract(f);
 
@@ -27,14 +27,14 @@ float noiseValue(vec2 f) {
     float s11 = rand(c11);
 
     // Perform bilinear interpolation with a smootherstep factor
-    vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), easeSmootherstep(t.y));
-    float i = mix(i0_i1.x, i0_i1.y, easeSmootherstep(t.x));
+    vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
+    float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
     // Return the result;
     return i;
 }
 
-float noiseValue(vec3 f) {
+float valueNoise(vec3 f) {
     // Get the t value
     vec3 t = fract(f);
 
@@ -62,20 +62,20 @@ float noiseValue(vec3 f) {
     vec4 i00_i10_i01_i11 = mix(
         vec4(s000, s100, s010, s110),
         vec4(s001, s101, s011, s111),
-        easeSmootherstep(t.z)
+        smootherstep(t.z)
     );
     vec2 i0_i1 = mix(
         vec2(i00_i10_i01_i11.xy),
         vec2(i00_i10_i01_i11.zw),
-        easeSmootherstep(t.y)
+        smootherstep(t.y)
     );
-    float i = mix(i0_i1.x, i0_i1.y, easeSmootherstep(t.x));
+    float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
     // Return the result;
     return i;
 }
 
-float noiseValue(vec4 f) {
+float valueNoise(vec4 f) {
     // Get the t value
     vec4 t = fract(f);
 
@@ -129,14 +129,14 @@ float noiseValue(vec4 f) {
     vec4 i00_i10_i01_i11 = mix(
         i000_s100_s010_s110,
         i001_s101_s011_s111,
-        easeSmootherstep(t.z)
+        smootherstep(t.z)
     );
     vec2 i0_i1 = mix(
         i00_i10_i01_i11.xy,
         i00_i10_i01_i11.zw,
-        easeSmootherstep(t.y)
+        smootherstep(t.y)
     );
-    float i = mix(i0_i1.x, i0_i1.y, easeSmootherstep(t.x));
+    float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
     // Return the result;
     return i;

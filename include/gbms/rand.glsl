@@ -5,19 +5,19 @@
 
 // A reasonable default hash based random float generator that returns values between 0 and 1.
 float rand(uint i) {
-    return float(hashPcg(i)) / UINT_MAX;
+    return float(pcgHash(i)) / UINT_MAX;
 }
 
 float rand(uvec2 i) {
-    return float(hashPcg(i)) / UINT_MAX;
+    return float(pcgHash(i)) / UINT_MAX;
 }
 
 float rand(uvec3 i) {
-    return float(hashPcg(i)) / UINT_MAX;
+    return float(pcgHash(i)) / UINT_MAX;
 }
 
 float rand(uvec4 i) {
-    return float(hashPcg(i)) / UINT_MAX;
+    return float(pcgHash(i)) / UINT_MAX;
 }
 
 float rand(float f) {
