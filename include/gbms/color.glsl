@@ -222,14 +222,11 @@ float colorOklabMaxSaturation(vec2 ab) {
 // Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
 vec2 _colorOklabFindCusp(vec2 ab) {
     float S_cusp = colorOklabMaxSaturation(ab);
-
     vec3 rgb_at_max = colorOklabToLinear(vec3(1, S_cusp * ab));
     float L_cusp = pow(1.0 / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b), 1.0 / 3.0);
     float C_cusp = L_cusp * S_cusp;
-
     return vec2(L_cusp , C_cusp);
 }
-
 
 // Toe function for `L_r`.
 // 
@@ -255,9 +252,107 @@ float _colorOklabToeInv(float x) {
     return fma(x, x, k.x * x) / (k.z * (x + k.y));
 }
 
-vec2 _colorOklabToSt(vec2 cusp)
-{
+vec2 _colorOklabToSt(vec2 cusp) {
     return vec2(cusp.y / cusp.x, cusp.y / (1 - cusp.x));
+}
+
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
+vec2 _colorGetStMid(vec2 ab) {
+    return vec2(0.11516993, 0.11239642) + 1.0 / (vec2(+7.44778970, +1.61320320)
+        + fma(vec2(4.15901240, -0.68124379), vec2(ab.y), ab.x * (vec2(-2.19557347, +0.40370612)
+            + fma(vec2(1.75198401, 0.90148123), vec2(ab.y), ab.x * (vec2(-2.13704948, -0.27087943)
+                + fma(vec2(-10.02301043, 0.61223990), vec2(ab.y), ab.x * (vec2(-4.24894561, +0.00299215)
+                    + fma(vec2(5.38770819, -0.45399568), vec2(ab.y), vec2(4.69891013, -0.14661872) * ab.x))))))));
+}
+
+// Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
+float _colorOklabFindGamutIntersection(float a, float b, float L1, float C1, float L0, vec2 cusp) {
+    // Find the intersection for upper and lower half separately
+    if ((L1 - L0) * cusp.y - (cusp.x - L0) * C1 <= 0.0) {
+        return cusp.y * L0 / (C1 * cusp.x + cusp.y * (L0 - L1));
+    } else {
+        float t = cusp.y * (L0 - 1.0) / (C1 * (cusp.x - 1.0) + cusp.y * (L0 - L1));
+
+        float dL = L1 - L0;
+        float dC = C1;
+
+        vec3 k_lms = a * vec3(+0.3963377774, -0.1055613458, -0.0894841775)
+            + b * vec3(0.2158037573, -0.0638541728, -1.2914855480);
+
+        vec3 lms_dt = dL + dC * k_lms;
+
+        float L = L0 * (1.0 - t) + t * L1;
+        float C = t * C1;
+
+        vec3 lms1 = L + C * k_lms;
+        vec3 lms2 = lms1 * lms1;
+        vec3 lms = lms2 * lms1;
+
+        vec3 lmsdt = 3 * lms_dt * lms2;
+        vec3 lmsdt2 = 6 * lms_dt * lms_dt * lms1;
+
+        vec3 t_rgb;
+        vec3 u_rgb;
+
+        vec3 r = 4.0767416621 * vec3(lms.x, lmsdt.x, lmsdt2.x)
+            - 3.3077115913 * vec3(lms.y, lmsdt.y, lmsdt2.x)
+            + 0.2309699292 * vec3(lms.z, lmsdt.z, lmsdt2.z)
+            + vec3(-1, 0, 0);
+        u_rgb.r = r.y / (r.y * r.y - 0.5 * r.x * r.z);
+        t_rgb.r = -r.x * u_rgb.r;
+
+        vec3 g = -1.2684380046 * vec3(lms.x, lmsdt.x, lmsdt2.x)
+            + 2.6097574011 * vec3(lms.y, lmsdt.y, lmsdt2.x)
+            - 0.3413193965 * vec3(lms.z, lmsdt.z, lmsdt2.z)
+            + vec3(-1, 0, 0);
+        u_rgb.g = g.y / (g.y * g.y - 0.5 * g.x * g.z);
+        t_rgb.g = -g.x * u_rgb.g;
+
+        vec3 b = -0.0041960863 * vec3(lms.x, lmsdt.x, lmsdt2.x)
+            - 0.7034186147 * vec3(lms.y, lmsdt.y, lmsdt2.x)
+            + 1.7076147010 * vec3(lms.z, lmsdt.z, lmsdt2.z)
+            + vec3(-1, 0, 0);
+
+        u_rgb.b = b.y / (b.y * b.y - 0.5 * b.x * b.z);
+        t_rgb.b = -b.x * u_rgb.b;
+
+        t_rgb = mix(vec3(FLT_MAX), t_rgb, step(0.0, u_rgb));
+        t += min(t_rgb.r, min(t_rgb.g, t_rgb.b));
+
+        return t;
+    }
+}
+
+float _colorOklabFindGamutIntersection(float a, float b, float L1, float C1, float L0) {
+    return _colorOklabFindGamutIntersection(a, b, L1, C1, L0, _colorOklabFindCusp(vec2(a, b)));
+}
+
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
+void _colorGetCs(vec3 Lab, out float C_0, out float C_mid, out float C_max) {
+    vec2 cusp = _colorOklabFindCusp(Lab.yz);
+
+    C_max = _colorOklabFindGamutIntersection(Lab.y, Lab.z, Lab.x, 1.0, Lab.x, cusp);
+
+    vec2 ST_max = _colorOklabToSt(cusp);    
+    vec2 L_L_inv = vec2(Lab.x, 1.0 - Lab.x);
+    vec2 k_mins = L_L_inv * ST_max;
+    float k = C_max / min(k_mins.x, k_mins.y);
+
+    {
+        vec2 ST_mid = _colorGetStMid(Lab.yz);
+        vec2 C_ab = L_L_inv * ST_mid;
+        vec2 C_ab2 = C_ab * C_ab;
+        vec2 C_ab4 = C_ab2 * C_ab2;
+        vec2 C_ab4_inv = 1.0 / C_ab4;
+        C_mid = 0.9 * k * sqrt(sqrt(1.0 / (C_ab4_inv.x + C_ab4_inv.y)));
+    }
+
+    {
+        vec2 C_ab = L_L_inv * vec2(0.4, 0.8);
+        vec2 C_ab2 = C_ab * C_ab;
+        vec2 C_ab2_inv = 1.0 / C_ab2;
+        C_0 = sqrt(1.0 / (C_ab2_inv.x + C_ab2_inv.y));
+    }
 }
 
 
@@ -305,7 +400,7 @@ vec4 colorOkhsvToLinear(vec4 hsv) {
     return vec4(colorOkhsvToLinear(hsv.xyz), hsv.w);
 }
 
-// Converts Okhsv to Oklab.
+// Converts Oklab to Okhsv.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsv-2
 vec3 colorOklabToOkhsv(vec3 lab) {
@@ -329,8 +424,9 @@ vec3 colorOklabToOkhsv(vec3 lab) {
     float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
     LC /= scale_L;
 
-    LC.y = LC.y * _colorOklabToe(LC.x) / LC.x;
-    LC.x = _colorOklabToe(LC.x);
+    float toe = _colorOklabToe(LC.x);
+    LC.y = LC.y * toe / LC.x;
+    LC.x = toe;
 
     float v = LC.x / LC_v.x;
     float s = (S_0 + ST_max.y) * LC_v.y / fma(ST_max.y, S_0, ST_max.y * k * LC_v.y);
@@ -348,6 +444,56 @@ vec3 colorLinearToOkHsv(vec3 linear) {
 
 vec4 colorLinearToOkHsv(vec4 linear) {
     return vec4(colorOklabToOkhsv(colorLinearToOklab(linear.rgb)), linear.a);
+}
+
+// Converts Okhsl to Oklab.
+//
+// Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
+vec3 colorOkhslToOklab(vec3 hsl) {
+    if (hsl.z == 1.0) return vec3(1.0, 0.0, 0.0); // White
+    if (hsl.z == 0.0) return vec3(0.0); // Black
+
+    float r = 2.0 * PI * hsl.x;
+    vec3 Lab = vec3(_colorOklabToeInv(hsl.z), cos(r), sin(r));
+
+    float C_0;
+    float C_mid;
+    float C_max;
+    _colorGetCs(Lab, C_0, C_mid, C_max);
+
+    float mid = 0.8;
+    float mid_inv = 1.25;
+
+    float C;
+    if (hsl.y < mid) {
+        float t = mid_inv * hsl.y;
+        float k_1 = mid * C_0;
+        float k_2 = (1.0 - k_1 / C_mid);
+        C = t * k_1 / (1.0 - k_2 * t);
+    } else {
+        // This simplification affects the end result slightly, but Björn's Javascript color picker
+        // makes the same optimization
+        float t = 5 * (hsl.y - mid);
+
+        float k_0 = C_mid;
+        float k_1 = (1.0 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
+        float k_2 = (1.0 - k_1 / (C_max - C_mid));
+        C = k_0 + t * k_1 / (1.0 - k_2 * t);
+    }
+
+    return vec3(Lab.x, Lab.yz * C);
+}
+
+vec4 colorOkhslToOklab(vec4 hsl) {
+    return vec4(colorOkhslToOklab(hsl.xyz), hsl.w);
+}
+
+vec3 colorOkhslToLinear(vec3 hsl) {
+    return colorOklabToLinear(colorOkhslToOklab(hsl));
+}
+
+vec4 colorOkhslToLinear(vec4 hsl) {
+    return vec4(colorOkhslToLinear(hsl.xyz), hsl.w);
 }
 
 #endif

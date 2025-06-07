@@ -12,4 +12,13 @@ float easeSmoothstep(float t) {
     return t * t * fma(-2.0, t, 3.0);
 }
 
+float easeIlerp(float a, float b, float f) {
+    return (f - a) / (b - a);
+}
+
+float easeRemap(float in_start, float in_end, float out_start, float out_end, float f) {
+    float t = easeIlerp(in_start, in_end, f);
+    return mix(out_start, out_end, t);
+}
+
 #endif
