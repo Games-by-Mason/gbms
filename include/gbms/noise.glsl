@@ -1,24 +1,33 @@
+// Hash based noise functions.
+//
+// Conventions:
+// * Following glsl `texture` conventions, `p` is the sample position in texture coordinates
 #ifndef INCLUDE_GBMS_NOISE
 #define INCLUDE_GBMS_NOISE
 
 #include "rand.glsl"
 #include "ease.glsl"
 
-float valueNoise(float f) {
-    float a = floor(f);
-    float t = fract(f);
-    return mix(rand(a), rand(a + 1.0), smootherstep(t));
+float valueNoise(float p, float tileFrequency) {
+    float a = mod(floor(p), tileFrequency);
+    float b = mod(a + 1.0, tileFrequency);
+    float t = fract(p);
+    return mix(rand(a), rand(b), smootherstep(fract(p)));
 }
 
-float valueNoise(vec2 f) {
-    // Get the t value
-    vec2 t = fract(f);
+float valueNoise(float p) {
+    return valueNoise(p, FLT_MAX);
+}
+
+float valueNoise(vec2 p, vec2 tileFrequency) {
+    // Calculate the t value
+    vec2 t = fract(p);
 
     // Get the coordinates
-    vec2 c00 = floor(f);
-    vec2 c10 = c00 + vec2(1, 0);
-    vec2 c01 = c00 + vec2(0, 1);
-    vec2 c11 = c00 + vec2(1, 1);
+    vec2 c00 = mod(floor(p), tileFrequency);
+    vec2 c10 = mod(c00 + vec2(1, 0), tileFrequency);
+    vec2 c01 = mod(c00 + vec2(0, 1), tileFrequency);
+    vec2 c11 = mod(c00 + vec2(1, 1), tileFrequency);
 
     // Get the samples
     float s00 = rand(c00);
@@ -34,19 +43,23 @@ float valueNoise(vec2 f) {
     return i;
 }
 
-float valueNoise(vec3 f) {
+float valueNoise(vec2 p) {
+    return valueNoise(p, vec2(FLT_MAX));
+}
+
+float valueNoise(vec3 p, vec3 tileFrequency) {
     // Get the t value
-    vec3 t = fract(f);
+    vec3 t = fract(p);
 
     // Get the coordinates
-    vec3 c000 = floor(f);
-    vec3 c100 = c000 + vec3(1, 0, 0);
-    vec3 c010 = c000 + vec3(0, 1, 0);
-    vec3 c110 = c000 + vec3(1, 1, 0);
-    vec3 c001 = c000 + vec3(0, 0, 1);
-    vec3 c101 = c000 + vec3(1, 0, 1);
-    vec3 c011 = c000 + vec3(0, 1, 1);
-    vec3 c111 = c000 + vec3(1, 1, 1);
+    vec3 c000 = mod(floor(p), tileFrequency);
+    vec3 c100 = mod(c000 + vec3(1, 0, 0), tileFrequency);
+    vec3 c010 = mod(c000 + vec3(0, 1, 0), tileFrequency);
+    vec3 c110 = mod(c000 + vec3(1, 1, 0), tileFrequency);
+    vec3 c001 = mod(c000 + vec3(0, 0, 1), tileFrequency);
+    vec3 c101 = mod(c000 + vec3(1, 0, 1), tileFrequency);
+    vec3 c011 = mod(c000 + vec3(0, 1, 1), tileFrequency);
+    vec3 c111 = mod(c000 + vec3(1, 1, 1), tileFrequency);
 
     // Get the samples
     float s000 = rand(c000);
@@ -75,27 +88,31 @@ float valueNoise(vec3 f) {
     return i;
 }
 
-float valueNoise(vec4 f) {
+float valueNoise(vec3 p) {
+    return valueNoise(p, vec3(FLT_MAX));
+}
+
+float valueNoise(vec4 p, vec4 tileFrequency) {
     // Get the t value
-    vec4 t = fract(f);
+    vec4 t = fract(p);
 
     // Get the coordinates
-    vec4 c0000 = floor(f);
-    vec4 c1000 = c0000 + vec4(1, 0, 0, 0);
-    vec4 c0100 = c0000 + vec4(0, 1, 0, 0);
-    vec4 c1100 = c0000 + vec4(1, 1, 0, 0);
-    vec4 c0010 = c0000 + vec4(0, 0, 1, 0);
-    vec4 c1010 = c0000 + vec4(1, 0, 1, 0);
-    vec4 c0110 = c0000 + vec4(0, 1, 1, 0);
-    vec4 c1110 = c0000 + vec4(1, 1, 1, 0);
-    vec4 c0001 = c0000 + vec4(0, 0, 0, 1);
-    vec4 c1001 = c0000 + vec4(1, 0, 0, 1);
-    vec4 c0101 = c0000 + vec4(0, 1, 0, 1);
-    vec4 c1101 = c0000 + vec4(1, 1, 0, 1);
-    vec4 c0011 = c0000 + vec4(0, 0, 1, 1);
-    vec4 c1011 = c0000 + vec4(1, 0, 1, 1);
-    vec4 c0111 = c0000 + vec4(0, 1, 1, 1);
-    vec4 c1111 = c0000 + vec4(1, 1, 1, 1);
+    vec4 c0000 = mod(floor(p), tileFrequency);
+    vec4 c1000 = mod(c0000 + vec4(1, 0, 0, 0), tileFrequency);
+    vec4 c0100 = mod(c0000 + vec4(0, 1, 0, 0), tileFrequency);
+    vec4 c1100 = mod(c0000 + vec4(1, 1, 0, 0), tileFrequency);
+    vec4 c0010 = mod(c0000 + vec4(0, 0, 1, 0), tileFrequency);
+    vec4 c1010 = mod(c0000 + vec4(1, 0, 1, 0), tileFrequency);
+    vec4 c0110 = mod(c0000 + vec4(0, 1, 1, 0), tileFrequency);
+    vec4 c1110 = mod(c0000 + vec4(1, 1, 1, 0), tileFrequency);
+    vec4 c0001 = mod(c0000 + vec4(0, 0, 0, 1), tileFrequency);
+    vec4 c1001 = mod(c0000 + vec4(1, 0, 0, 1), tileFrequency);
+    vec4 c0101 = mod(c0000 + vec4(0, 1, 0, 1), tileFrequency);
+    vec4 c1101 = mod(c0000 + vec4(1, 1, 0, 1), tileFrequency);
+    vec4 c0011 = mod(c0000 + vec4(0, 0, 1, 1), tileFrequency);
+    vec4 c1011 = mod(c0000 + vec4(1, 0, 1, 1), tileFrequency);
+    vec4 c0111 = mod(c0000 + vec4(0, 1, 1, 1), tileFrequency);
+    vec4 c1111 = mod(c0000 + vec4(1, 1, 1, 1), tileFrequency);
 
     // Get the samples
     float s0000 = rand(c0000);
@@ -140,6 +157,10 @@ float valueNoise(vec4 f) {
 
     // Return the result;
     return i;
+}
+
+float valueNoise(vec4 p) {
+    return valueNoise(p, vec4(FLT_MAX));
 }
 
 #endif

@@ -13,6 +13,8 @@
 // * For regular polygons, the radius is the radius of the circle contained by the polygon. For star
 //   like shapes that are inset from regular polygons, the radius is the radius of the circle that
 //   contains the shape. This may be revisited.
+// * Operations that combine SDFs (e.g. those based on min and max) are approximate, and may not result
+//   in 100% valid SDFs
 //
 // Tips:
 // * Use `sdDebug`
