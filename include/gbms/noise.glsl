@@ -9,10 +9,19 @@
 #include "ease.glsl"
 
 float valueNoise(float p, float tileFrequency) {
-    float a = mod(floor(p), tileFrequency);
-    float b = mod(a + 1.0, tileFrequency);
+    // Get the t value
     float t = fract(p);
-    return mix(rand(a), rand(b), smootherstep(fract(p)));
+
+    // Get the coordinates
+    float c0 = mod(floor(p), tileFrequency);
+    float c1 = mod(c0 + 1.0, tileFrequency);
+
+    // Get the sample values
+    float s0 = rand(c0);
+    float s1 = rand(c1);
+
+    // Perform linear interpolation with a smootherstep factor
+    return mix(s0, s1, smootherstep(fract(p)));
 }
 
 float valueNoise(float p) {
@@ -61,7 +70,7 @@ float valueNoise(vec3 p, vec3 tileFrequency) {
     vec3 c011 = mod(c000 + vec3(0, 1, 1), tileFrequency);
     vec3 c111 = mod(c000 + vec3(1, 1, 1), tileFrequency);
 
-    // Get the samples
+    // Get the sample values
     float s000 = rand(c000);
     float s100 = rand(c100);
     float s010 = rand(c010);
@@ -114,7 +123,7 @@ float valueNoise(vec4 p, vec4 tileFrequency) {
     vec4 c0111 = mod(c0000 + vec4(0, 1, 1, 1), tileFrequency);
     vec4 c1111 = mod(c0000 + vec4(1, 1, 1, 1), tileFrequency);
 
-    // Get the samples
+    // Get the sample values
     float s0000 = rand(c0000);
     float s1000 = rand(c1000);
     float s0100 = rand(c0100);
@@ -161,6 +170,30 @@ float valueNoise(vec4 p, vec4 tileFrequency) {
 
 float valueNoise(vec4 p) {
     return valueNoise(p, vec4(FLT_MAX));
+}
+
+float perlinNoise(float p, float tileFrequency) {
+    // Get the t value
+    float t = fract(p);
+
+    // Get the coordinates
+    float c0 = mod(floor(p), tileFrequency);
+    float c1 = mod(c0 + 1.0, tileFrequency);
+
+    // Get the sample gradients
+    float g0 = mix(-1, 1, rand(c0));
+    float g1 = mix(-1, 1, rand(c1));
+
+    // Get the samples
+    float s0 = dot(g0, mod(p - c0, tileFrequency));
+    float s1 = dot(g1, mod(p - c1, -tileFrequency));
+
+    // Perform linear interpolation with a smootherstep factor
+    return mix(s0, s1, smootherstep(fract(p)));
+}
+
+float perlinNoise(float p) {
+    return perlinNoise(p, FLT_MAX);
 }
 
 #endif

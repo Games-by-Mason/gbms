@@ -65,13 +65,18 @@ float sdSample(float sdf) {
     return srgbToLinear(sdSampleSrgb(sdf, fwidth(sdf)));
 }
 
-// Debug output for an SDF. `1` is a good starting place for `scale`.
+// Debug output for an SDF.
 vec4 sdDebug(float sdf, float scale) {
     vec3 col = (sdf > 0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
     col *= 1.0 - exp(-6.0 * abs(sdf * scale));
     col *= 0.8 + 0.2 * cos(150.0 * sdf * scale);
     col = mix( col, vec3(1.0), 1.0 - smoothstep(0.0, 0.01, abs(sdf * scale)) );
     return srgbToLinear(vec4(col,1.0));
+}
+
+// Debug output for an SDF.
+vec4 sdDebug(float sdf) {
+    return sdDebug(sdf, 1.0);
 }
 
 float sdCircle(vec2 p, float radius) {
