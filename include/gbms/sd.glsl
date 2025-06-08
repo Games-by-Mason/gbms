@@ -35,25 +35,34 @@
 #include "srgb.glsl"
 #include "geom.glsl"
 
-// Similar to `sdSample`, but does not convert to linear space.
-float sdSampleSrgb(float sdf, float threshold) {
-    float threshold2 = threshold * 0.5;
+// Returns the approximate gradient of the SDF for antialiasing. This could be calculated more
+// precisely by taking length of vec2(dx, dy), but the difference isn't visually perceptible for the
+// purposes of antialiasing.
+float sdGradient(float sdf) {
+    return fwidth(sdf);
+}
+
+// Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
+// produces  visibly worse antialiasing.
+float sdSampleSrgb(float sdf, float gradient) {
+    float threshold2 = gradient * 0.5;
     return ilerp(-threshold2, threshold2, sdf);
 }
 
-// Similar to `sdSample`, but does not convert to linear space.
-float sdSampleSrgb(float sdf, vec2 texcoord) {
-    return sdSampleSrgb(sdf, compSum(fwidth(texcoord)) * 0.5);
+// Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
+// produces  visibly worse antialiasing.
+float sdSampleSrgb(float sdf) {
+    return sdSampleSrgb(sdf, fwidth(sdf));
 }
 
-// Samples a SDF with an explicit threshold. Prefer the texcoord variant when possible.
-float sdSample(float sdf, float threshold) {
-    return srgbToLinear(sdSampleSrgb(sdf, threshold));
+// Samples a SDF.
+float sdSample(float sdf, float gradient) {
+    return srgbToLinear(sdSampleSrgb(sdf, gradient));
 }
 
-// Samples a SDF. Automatically calculates the threshold from the derivative of `texcoord`.
-float sdSample(float sdf, vec2 texcoord) {
-    return srgbToLinear(sdSampleSrgb(sdf, texcoord));
+// Samples a SDF.
+float sdSample(float sdf) {
+    return srgbToLinear(sdSampleSrgb(sdf, fwidth(sdf)));
 }
 
 // Debug output for an SDF. `1` is a good starting place for `scale`.
