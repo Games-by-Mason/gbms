@@ -498,7 +498,7 @@ float valueFbm(genType p, genType period, float hurst, uint octaves) { \
     float result = 0.0; \
     float peak = 0.0; \
     for(int i = 0; i < octaves; ++i) { \
-        result += amplitude * valueNoise(scale * p); \
+        result += amplitude * valueNoise(scale * p, period); \
         peak += amplitude; \
         scale *= 2.0; \
         amplitude *= gain; \
@@ -523,7 +523,7 @@ float perlinFbm(genType p, genType period, float hurst, uint octaves) { \
     float amplitude = 1.0; \
     float result = 0.0; \
     for(int i = 0; i < octaves; ++i) { \
-        result += amplitude * perlinNoise(scale * p); \
+        result += amplitude * perlinNoise(scale * p, period); \
         scale *= 2.0; \
         amplitude *= gain; \
     } \
