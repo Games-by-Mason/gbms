@@ -490,4 +490,54 @@ float perlinNoise(vec4 p) {
     return perlinNoise(p, vec4(FLT_MAX));
 }
 
+#define _GBMS_DEF_VALUE_FBM(genType) \
+float valueFbm(genType p, genType period, float hurst, uint octaves) { \
+    float gain = exp2(-hurst); \
+    float scale = 1.0; \
+    float amplitude = 1.0; \
+    float result = 0.0; \
+    float peak = 0.0; \
+    for(int i = 0; i < octaves; ++i) { \
+        result += amplitude * valueNoise(scale * p); \
+        peak += amplitude; \
+        scale *= 2.0; \
+        amplitude *= gain; \
+    } \
+    return result / peak; \
+} \
+float valueFbm(genType p, float hurst, uint octaves) { \
+    return valueFbm(p, genType(FLT_MAX), hurst, octaves); \
+}
+
+_GBMS_DEF_VALUE_FBM(float)
+_GBMS_DEF_VALUE_FBM(vec2)
+_GBMS_DEF_VALUE_FBM(vec3)
+_GBMS_DEF_VALUE_FBM(vec4)
+
+#undef _GBMS_DEF_VALUE_FBM
+
+#define _GBMS_DEF_PERLIN_FBM(genType) \
+float perlinFbm(genType p, genType period, float hurst, uint octaves) { \
+    float gain = exp2(-hurst); \
+    float scale = 1.0; \
+    float amplitude = 1.0; \
+    float result = 0.0; \
+    for(int i = 0; i < octaves; ++i) { \
+        result += amplitude * perlinNoise(scale * p); \
+        scale *= 2.0; \
+        amplitude *= gain; \
+    } \
+    return result; \
+} \
+float perlinFbm(genType p, float hurst, uint octaves) { \
+    return perlinFbm(p, genType(FLT_MAX), hurst, octaves); \
+}
+
+_GBMS_DEF_PERLIN_FBM(float)
+_GBMS_DEF_PERLIN_FBM(vec2)
+_GBMS_DEF_PERLIN_FBM(vec3)
+_GBMS_DEF_PERLIN_FBM(vec4)
+
+#undef _GBMS_DEF_PERLIN_FBM
+
 #endif
