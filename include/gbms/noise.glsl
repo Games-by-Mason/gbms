@@ -172,6 +172,11 @@ float valueNoise(vec4 p) {
     return valueNoise(p, vec4(FLT_MAX));
 }
 
+float _perlinGrad1(float p) {
+    // Pick a random value between -1 and 1
+    return mix(-1, 1, mix(-1, 1, rand(p)));
+}
+
 float perlinNoise(float p, float period) {
     // Get the t value
     float t = fract(p);
@@ -185,8 +190,8 @@ float perlinNoise(float p, float period) {
     float c1 = mod(c0 + 1.0, period);
 
     // Get the sample gradients
-    float g0 = mix(-1, 1, mix(-1, 1, rand(c0)));
-    float g1 = mix(-1, 1, mix(-1, 1, rand(c1)));
+    float g0 = _perlinGrad1(c0);
+    float g1 = _perlinGrad1(c1);
 
     // Get the samples
     float s0 = dot(g0, mod(p - c0, sign(0.5 - o0) * period));
@@ -198,6 +203,21 @@ float perlinNoise(float p, float period) {
 
 float perlinNoise(float p) {
     return perlinNoise(p, FLT_MAX);
+}
+
+vec2 _perlinGrad2(vec2 c) {
+    // Pick a random diagonal unit vector
+    const vec2[8] gradients = vec2[8](
+        normalize(vec2(-1, -1)),
+        normalize(vec2(-1, 0)),
+        normalize(vec2(-1, 1)),
+        normalize(vec2(0, -1)),
+        normalize(vec2(0, 1)),
+        normalize(vec2(1, -1)),
+        normalize(vec2(1, 0)),
+        normalize(vec2(1, 1))
+    );
+    return gradients[pcgHash(uvec2(floatBitsToInt(c))) % 8];
 }
 
 float perlinNoise(vec2 p, vec2 period) {
@@ -217,10 +237,10 @@ float perlinNoise(vec2 p, vec2 period) {
     vec2 c11 = mod(c00 + o11, period);
 
     // Get the sample gradients
-    vec2 g00 = normalize(mix(vec2(-1), vec2(1), rand2(c00)));
-    vec2 g10 = normalize(mix(vec2(-1), vec2(1), rand2(c10)));
-    vec2 g01 = normalize(mix(vec2(-1), vec2(1), rand2(c01)));
-    vec2 g11 = normalize(mix(vec2(-1), vec2(1), rand2(c11)));
+    vec2 g00 = _perlinGrad2(c00);
+    vec2 g10 = _perlinGrad2(c10);
+    vec2 g01 = _perlinGrad2(c01);
+    vec2 g11 = _perlinGrad2(c11);
 
     // Get the samples
     float s00 = dot(g00, mod(p - c00, sign(0.5 - o00) * period));
@@ -238,6 +258,25 @@ float perlinNoise(vec2 p, vec2 period) {
 
 float perlinNoise(vec2 p) {
     return perlinNoise(p, vec2(FLT_MAX));
+}
+
+vec3 _perlinGrad3(vec3 c) {
+    // Pick a random diagonal unit vector
+    const vec3[12] gradients = vec3[12](
+        normalize(vec3(-1, -1, 0)),
+        normalize(vec3(-1, 0, -1)),
+        normalize(vec3(-1, 0, 1)),
+        normalize(vec3(-1, 1, 0)),
+        normalize(vec3(0, -1, -1)),
+        normalize(vec3(0, -1, 1)),
+        normalize(vec3(0, 1, -1)),
+        normalize(vec3(0, 1, 1)),
+        normalize(vec3(1, -1, 0)),
+        normalize(vec3(1, 0, -1)),
+        normalize(vec3(1, 0, 1)),
+        normalize(vec3(1, 1, 0))
+    );
+    return gradients[pcgHash(uvec3(floatBitsToInt(c))) % 12]; // Index not uniform, but close enough
 }
 
 float perlinNoise(vec3 p, vec3 period) {
@@ -305,6 +344,45 @@ float perlinNoise(vec3 p) {
     return perlinNoise(p, vec3(FLT_MAX));
 }
 
+vec4 _perlinGrad4(vec4 c) {
+    // Pick a random diagonal unit vector
+    const vec4[32] gradients = vec4[32](
+        normalize(vec4(-1, -1, -1, 0)),
+        normalize(vec4(-1, -1, 0, -1)),
+        normalize(vec4(-1, -1, 0, 1)),
+        normalize(vec4(-1, -1, 1, 0)),
+        normalize(vec4(-1, 0, -1, -1)),
+        normalize(vec4(-1, 0, -1, 1)),
+        normalize(vec4(-1, 0, 1, -1)),
+        normalize(vec4(-1, 0, 1, 1)),
+        normalize(vec4(-1, 1, -1, 0)),
+        normalize(vec4(-1, 1, 0, -1)),
+        normalize(vec4(-1, 1, 0, 1)),
+        normalize(vec4(-1, 1, 1, 0)),
+        normalize(vec4(0, -1, -1, -1)),
+        normalize(vec4(0, -1, -1, 1)),
+        normalize(vec4(0, -1, 1, -1)),
+        normalize(vec4(0, -1, 1, 1)),
+        normalize(vec4(0, 1, -1, -1)),
+        normalize(vec4(0, 1, -1, 1)),
+        normalize(vec4(0, 1, 1, -1)),
+        normalize(vec4(0, 1, 1, 1)),
+        normalize(vec4(1, -1, -1, 0)),
+        normalize(vec4(1, -1, 0, -1)),
+        normalize(vec4(1, -1, 0, 1)),
+        normalize(vec4(1, -1, 1, 0)),
+        normalize(vec4(1, 0, -1, -1)),
+        normalize(vec4(1, 0, -1, 1)),
+        normalize(vec4(1, 0, 1, -1)),
+        normalize(vec4(1, 0, 1, 1)),
+        normalize(vec4(1, 1, -1, 0)),
+        normalize(vec4(1, 1, 0, -1)),
+        normalize(vec4(1, 1, 0, 1)),
+        normalize(vec4(1, 1, 1, 0))
+    );
+    return gradients[pcgHash(uvec4(floatBitsToInt(c))) % 32];
+}
+
 float perlinNoise(vec4 p, vec4 period) {
     // Get the t value
     vec4 t = fract(p);
@@ -346,22 +424,22 @@ float perlinNoise(vec4 p, vec4 period) {
     vec4 c1111 = mod(c0000 + o1111, period);
 
     // Get the sample gradients
-    vec4 g0000 = normalize(mix(vec4(-1), vec4(1), rand4(c0000)));
-    vec4 g1000 = normalize(mix(vec4(-1), vec4(1), rand4(c1000)));
-    vec4 g0100 = normalize(mix(vec4(-1), vec4(1), rand4(c0100)));
-    vec4 g1100 = normalize(mix(vec4(-1), vec4(1), rand4(c1100)));
-    vec4 g0010 = normalize(mix(vec4(-1), vec4(1), rand4(c0010)));
-    vec4 g1010 = normalize(mix(vec4(-1), vec4(1), rand4(c1010)));
-    vec4 g0110 = normalize(mix(vec4(-1), vec4(1), rand4(c0110)));
-    vec4 g1110 = normalize(mix(vec4(-1), vec4(1), rand4(c1110)));
-    vec4 g0001 = normalize(mix(vec4(-1), vec4(1), rand4(c0001)));
-    vec4 g1001 = normalize(mix(vec4(-1), vec4(1), rand4(c1001)));
-    vec4 g0101 = normalize(mix(vec4(-1), vec4(1), rand4(c0101)));
-    vec4 g1101 = normalize(mix(vec4(-1), vec4(1), rand4(c1101)));
-    vec4 g0011 = normalize(mix(vec4(-1), vec4(1), rand4(c0011)));
-    vec4 g1011 = normalize(mix(vec4(-1), vec4(1), rand4(c1011)));
-    vec4 g0111 = normalize(mix(vec4(-1), vec4(1), rand4(c0111)));
-    vec4 g1111 = normalize(mix(vec4(-1), vec4(1), rand4(c1111)));
+    vec4 g0000 = _perlinGrad4(c0000);
+    vec4 g1000 = _perlinGrad4(c1000);
+    vec4 g0100 = _perlinGrad4(c0100);
+    vec4 g1100 = _perlinGrad4(c1100);
+    vec4 g0010 = _perlinGrad4(c0010);
+    vec4 g1010 = _perlinGrad4(c1010);
+    vec4 g0110 = _perlinGrad4(c0110);
+    vec4 g1110 = _perlinGrad4(c1110);
+    vec4 g0001 = _perlinGrad4(c0001);
+    vec4 g1001 = _perlinGrad4(c1001);
+    vec4 g0101 = _perlinGrad4(c0101);
+    vec4 g1101 = _perlinGrad4(c1101);
+    vec4 g0011 = _perlinGrad4(c0011);
+    vec4 g1011 = _perlinGrad4(c1011);
+    vec4 g0111 = _perlinGrad4(c0111);
+    vec4 g1111 = _perlinGrad4(c1111);
 
     // Get the sample values
     float s0000 = dot(g0000, mod(p - c0000, sign(0.5 - o0000) * period));
