@@ -185,8 +185,8 @@ float perlinNoise(float p, float period) {
     float c1 = mod(c0 + 1.0, period);
 
     // Get the sample gradients
-    float g0 = mix(-1, 1, rand(c0));
-    float g1 = mix(-1, 1, rand(c1));
+    float g0 = mix(-1, 1, mix(-1, 1, rand(c0)));
+    float g1 = mix(-1, 1, mix(-1, 1, rand(c1)));
 
     // Get the samples
     float s0 = dot(g0, mod(p - c0, sign(0.5 - o0) * period));
