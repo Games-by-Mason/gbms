@@ -48,7 +48,7 @@ float valueNoise(vec2 p, vec2 period) {
     vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
     float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
-    // Return the result;
+    // Return the result
     return i;
 }
 
@@ -93,7 +93,7 @@ float valueNoise(vec3 p, vec3 period) {
     );
     float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
-    // Return the result;
+    // Return the result
     return i;
 }
 
@@ -145,12 +145,12 @@ float valueNoise(vec4 p, vec4 period) {
     vec4 i000_s100_s010_s110 = mix(
         vec4(s0000, s1000, s0100, s1100),
         vec4(s0001, s1001, s0101, s1101),
-        t.w
+        smootherstep(t.w)
     );
     vec4 i001_s101_s011_s111 = mix(
         vec4(s0010, s1010, s0110, s1110),
         vec4(s0011, s1011, s0111, s1111),
-        t.w
+        smootherstep(t.w)
     );
     vec4 i00_i10_i01_i11 = mix(
         i000_s100_s010_s110,
@@ -164,7 +164,7 @@ float valueNoise(vec4 p, vec4 period) {
     );
     float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
-    // Return the result;
+    // Return the result
     return i;
 }
 
@@ -232,7 +232,7 @@ float perlinNoise(vec2 p, vec2 period) {
     vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
     float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
-    // Return the result;
+    // Return the result
     return i;
 }
 
@@ -297,7 +297,7 @@ float perlinNoise(vec3 p, vec3 period) {
     );
     float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
-    // Return the result;
+    // Return the result
     return i;
 }
 
@@ -385,12 +385,12 @@ float perlinNoise(vec4 p, vec4 period) {
     vec4 i000_s100_s010_s110 = mix(
         vec4(s0000, s1000, s0100, s1100),
         vec4(s0001, s1001, s0101, s1101),
-        t.w
+        smootherstep(t.w)
     );
     vec4 i001_s101_s011_s111 = mix(
         vec4(s0010, s1010, s0110, s1110),
         vec4(s0011, s1011, s0111, s1111),
-        t.w
+        smootherstep(t.w)
     );
     vec4 i00_i10_i01_i11 = mix(
         i000_s100_s010_s110,
@@ -404,7 +404,7 @@ float perlinNoise(vec4 p, vec4 period) {
     );
     float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
 
-    // Return the result;
+    // Return the result
     return i;
 }
 
