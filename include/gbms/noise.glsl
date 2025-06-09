@@ -8,13 +8,13 @@
 #include "rand.glsl"
 #include "ease.glsl"
 
-float valueNoise(float p, float tileFrequency) {
+float valueNoise(float p, float tilePeriod) {
     // Get the t value
     float t = fract(p);
 
-    // Get the coordinates
-    float c0 = mod(floor(p), tileFrequency);
-    float c1 = mod(c0 + 1.0, tileFrequency);
+    // Get the sample coordinates
+    float c0 = mod(floor(p), tilePeriod);
+    float c1 = mod(c0 + 1.0, tilePeriod);
 
     // Get the sample values
     float s0 = rand(c0);
@@ -28,15 +28,15 @@ float valueNoise(float p) {
     return valueNoise(p, FLT_MAX);
 }
 
-float valueNoise(vec2 p, vec2 tileFrequency) {
+float valueNoise(vec2 p, vec2 tilePeriod) {
     // Calculate the t value
     vec2 t = fract(p);
 
-    // Get the coordinates
-    vec2 c00 = mod(floor(p), tileFrequency);
-    vec2 c10 = mod(c00 + vec2(1, 0), tileFrequency);
-    vec2 c01 = mod(c00 + vec2(0, 1), tileFrequency);
-    vec2 c11 = mod(c00 + vec2(1, 1), tileFrequency);
+    // Get the sample coordinates
+    vec2 c00 = mod(floor(p), tilePeriod);
+    vec2 c10 = mod(c00 + vec2(1, 0), tilePeriod);
+    vec2 c01 = mod(c00 + vec2(0, 1), tilePeriod);
+    vec2 c11 = mod(c00 + vec2(1, 1), tilePeriod);
 
     // Get the samples
     float s00 = rand(c00);
@@ -56,19 +56,19 @@ float valueNoise(vec2 p) {
     return valueNoise(p, vec2(FLT_MAX));
 }
 
-float valueNoise(vec3 p, vec3 tileFrequency) {
+float valueNoise(vec3 p, vec3 tilePeriod) {
     // Get the t value
     vec3 t = fract(p);
 
-    // Get the coordinates
-    vec3 c000 = mod(floor(p), tileFrequency);
-    vec3 c100 = mod(c000 + vec3(1, 0, 0), tileFrequency);
-    vec3 c010 = mod(c000 + vec3(0, 1, 0), tileFrequency);
-    vec3 c110 = mod(c000 + vec3(1, 1, 0), tileFrequency);
-    vec3 c001 = mod(c000 + vec3(0, 0, 1), tileFrequency);
-    vec3 c101 = mod(c000 + vec3(1, 0, 1), tileFrequency);
-    vec3 c011 = mod(c000 + vec3(0, 1, 1), tileFrequency);
-    vec3 c111 = mod(c000 + vec3(1, 1, 1), tileFrequency);
+    // Get the sample coordinates
+    vec3 c000 = mod(floor(p), tilePeriod);
+    vec3 c100 = mod(c000 + vec3(1, 0, 0), tilePeriod);
+    vec3 c010 = mod(c000 + vec3(0, 1, 0), tilePeriod);
+    vec3 c110 = mod(c000 + vec3(1, 1, 0), tilePeriod);
+    vec3 c001 = mod(c000 + vec3(0, 0, 1), tilePeriod);
+    vec3 c101 = mod(c000 + vec3(1, 0, 1), tilePeriod);
+    vec3 c011 = mod(c000 + vec3(0, 1, 1), tilePeriod);
+    vec3 c111 = mod(c000 + vec3(1, 1, 1), tilePeriod);
 
     // Get the sample values
     float s000 = rand(c000);
@@ -101,27 +101,27 @@ float valueNoise(vec3 p) {
     return valueNoise(p, vec3(FLT_MAX));
 }
 
-float valueNoise(vec4 p, vec4 tileFrequency) {
+float valueNoise(vec4 p, vec4 tilePeriod) {
     // Get the t value
     vec4 t = fract(p);
 
-    // Get the coordinates
-    vec4 c0000 = mod(floor(p), tileFrequency);
-    vec4 c1000 = mod(c0000 + vec4(1, 0, 0, 0), tileFrequency);
-    vec4 c0100 = mod(c0000 + vec4(0, 1, 0, 0), tileFrequency);
-    vec4 c1100 = mod(c0000 + vec4(1, 1, 0, 0), tileFrequency);
-    vec4 c0010 = mod(c0000 + vec4(0, 0, 1, 0), tileFrequency);
-    vec4 c1010 = mod(c0000 + vec4(1, 0, 1, 0), tileFrequency);
-    vec4 c0110 = mod(c0000 + vec4(0, 1, 1, 0), tileFrequency);
-    vec4 c1110 = mod(c0000 + vec4(1, 1, 1, 0), tileFrequency);
-    vec4 c0001 = mod(c0000 + vec4(0, 0, 0, 1), tileFrequency);
-    vec4 c1001 = mod(c0000 + vec4(1, 0, 0, 1), tileFrequency);
-    vec4 c0101 = mod(c0000 + vec4(0, 1, 0, 1), tileFrequency);
-    vec4 c1101 = mod(c0000 + vec4(1, 1, 0, 1), tileFrequency);
-    vec4 c0011 = mod(c0000 + vec4(0, 0, 1, 1), tileFrequency);
-    vec4 c1011 = mod(c0000 + vec4(1, 0, 1, 1), tileFrequency);
-    vec4 c0111 = mod(c0000 + vec4(0, 1, 1, 1), tileFrequency);
-    vec4 c1111 = mod(c0000 + vec4(1, 1, 1, 1), tileFrequency);
+    // Get the sample coordinates
+    vec4 c0000 = mod(floor(p), tilePeriod);
+    vec4 c1000 = mod(c0000 + vec4(1, 0, 0, 0), tilePeriod);
+    vec4 c0100 = mod(c0000 + vec4(0, 1, 0, 0), tilePeriod);
+    vec4 c1100 = mod(c0000 + vec4(1, 1, 0, 0), tilePeriod);
+    vec4 c0010 = mod(c0000 + vec4(0, 0, 1, 0), tilePeriod);
+    vec4 c1010 = mod(c0000 + vec4(1, 0, 1, 0), tilePeriod);
+    vec4 c0110 = mod(c0000 + vec4(0, 1, 1, 0), tilePeriod);
+    vec4 c1110 = mod(c0000 + vec4(1, 1, 1, 0), tilePeriod);
+    vec4 c0001 = mod(c0000 + vec4(0, 0, 0, 1), tilePeriod);
+    vec4 c1001 = mod(c0000 + vec4(1, 0, 0, 1), tilePeriod);
+    vec4 c0101 = mod(c0000 + vec4(0, 1, 0, 1), tilePeriod);
+    vec4 c1101 = mod(c0000 + vec4(1, 1, 0, 1), tilePeriod);
+    vec4 c0011 = mod(c0000 + vec4(0, 0, 1, 1), tilePeriod);
+    vec4 c1011 = mod(c0000 + vec4(1, 0, 1, 1), tilePeriod);
+    vec4 c0111 = mod(c0000 + vec4(0, 1, 1, 1), tilePeriod);
+    vec4 c1111 = mod(c0000 + vec4(1, 1, 1, 1), tilePeriod);
 
     // Get the sample values
     float s0000 = rand(c0000);
@@ -172,21 +172,21 @@ float valueNoise(vec4 p) {
     return valueNoise(p, vec4(FLT_MAX));
 }
 
-float perlinNoise(float p, float tileFrequency) {
+float perlinNoise(float p, float tilePeriod) {
     // Get the t value
     float t = fract(p);
 
-    // Get the coordinates
-    float c0 = mod(floor(p), tileFrequency);
-    float c1 = mod(c0 + 1.0, tileFrequency);
+    // Get the sample coordinates
+    float c0 = mod(floor(p), tilePeriod);
+    float c1 = mod(c0 + 1.0, tilePeriod);
 
     // Get the sample gradients
     float g0 = mix(-1, 1, rand(c0));
     float g1 = mix(-1, 1, rand(c1));
 
     // Get the samples
-    float s0 = dot(g0, mod(p - c0, tileFrequency));
-    float s1 = dot(g1, mod(p - c1, -tileFrequency));
+    float s0 = dot(g0, mod(p - c0, tilePeriod));
+    float s1 = dot(g1, mod(p - c1, -tilePeriod));
 
     // Perform linear interpolation with a smootherstep factor
     return mix(s0, s1, smootherstep(fract(p)));
@@ -194,6 +194,40 @@ float perlinNoise(float p, float tileFrequency) {
 
 float perlinNoise(float p) {
     return perlinNoise(p, FLT_MAX);
+}
+
+float perlinNoise(vec2 p, vec2 tilePeriod) {
+    // Calculate the t value
+    vec2 t = fract(p);
+
+    // Get the sample coordinates
+    vec2 c00 = mod(floor(p), tilePeriod);
+    vec2 c10 = mod(c00 + vec2(1, 0), tilePeriod);
+    vec2 c01 = mod(c00 + vec2(0, 1), tilePeriod);
+    vec2 c11 = mod(c00 + vec2(1, 1), tilePeriod);
+
+    // Get the sample gradients
+    vec2 g00 = normalize(mix(vec2(-1), vec2(1), rand2(c00)));
+    vec2 g10 = normalize(mix(vec2(-1), vec2(1), rand2(c10)));
+    vec2 g01 = normalize(mix(vec2(-1), vec2(1), rand2(c01)));
+    vec2 g11 = normalize(mix(vec2(-1), vec2(1), rand2(c11)));
+
+    // Get the samples
+    float s00 = dot(g00, mod(p - c00, vec2(tilePeriod.x, tilePeriod.y)));
+    float s10 = dot(g10, mod(p - c10, vec2(-tilePeriod.x, tilePeriod.y)));
+    float s01 = dot(g01, mod(p - c01, vec2(tilePeriod.x, -tilePeriod.y)));
+    float s11 = dot(g11, mod(p - c11, vec2(-tilePeriod.x, -tilePeriod.y)));
+
+    // Perform bilinear interpolation with a smootherstep factor
+    vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
+    float i = mix(i0_i1.x, i0_i1.y, smootherstep(t.x));
+
+    // Return the result;
+    return i;
+}
+
+float perlinNoise(vec2 p) {
+    return perlinNoise(p, vec2(FLT_MAX));
 }
 
 #endif

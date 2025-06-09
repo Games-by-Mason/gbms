@@ -2,7 +2,7 @@
 #define INCLUDE_GBMS_TIMER
 
 struct ModTimer {
-	float frequency;
+	float period;
 	float seconds;
 };
 
