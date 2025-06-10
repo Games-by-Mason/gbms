@@ -2,11 +2,13 @@
 //
 // Conventions:
 // * Following glsl `texture` conventions, `p` is the sample position in texture coordinates
+
 #ifndef INCLUDE_GBMS_NOISE
 #define INCLUDE_GBMS_NOISE
 
 #include "rand.glsl"
 #include "ease.glsl"
+#include "geom.glsl"
 
 float valueNoise(float p, float period) {
     // Get the t value
@@ -539,5 +541,70 @@ _GBMS_DEF_PERLIN_FBM(vec3)
 _GBMS_DEF_PERLIN_FBM(vec4)
 
 #undef _GBMS_DEF_PERLIN_FBM
+
+// Estimates the gradient for `voronoiAntialias`. This gradient isn't stable to rotation of the
+// coordinate system, but it's close enough that the artifacts shouldn't be visible for the expected
+// usage.
+float voronoiGradient(vec2 p) {
+    return compSum(fwidth(p)) / 4;
+}
+
+// Returns the blend factor to antialias `voronoiNoise`.
+float voronoiAntialias(vec2 p, vec2[2] points, float grad) {
+    vec2 line = normalize(points[1] - points[0]);
+    vec2 midpoint = mix(points[0], points[1], 0.5);
+    vec2 projected = points[0] + line * dot((p - points[0]), line);
+    float dist_to_midpoint = length(projected - midpoint);
+    return 1.0 - clamp(remap(0, grad, 0.5, 1, dist_to_midpoint), 0.5, 1);
+}
+
+float voronoiAntialias(vec2 p, vec2[2] points) {
+    return voronoiAntialias(p, points, voronoiGradient(p));
+}
+
+struct Voronoi2 {
+    vec2[2] point;
+    uint[2] id;
+    float[2] dist;
+};
+
+Voronoi2 voronoiNoise(vec2 p, vec2 period) {
+    Voronoi2 result;
+    for (uint i = 0; i < 2; ++i) {
+        result.dist[i] = FLT_MAX;
+    }
+
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            vec2 cell = floor(p) + vec2(x, y);
+            uint id = pcgHash(floatBitsToInt(cell));
+            vec2 point = cell + rand2(id);
+            float dist = length2(point - p);
+            for (uint i = 0; i < 2; ++i) {
+                if (dist < result.dist[i]) {
+                    if (i < 1) {
+                        result.dist[i + 1] = result.dist[i];
+                        result.point[i + 1] = result.point[i];
+                        result.id[i + 1] = result.id[i];
+                    }
+                    result.dist[i] = dist;
+                    result.point[i] = point;
+                    result.id[i] = id;
+                    break;
+                }
+            }
+        }
+    }
+
+    for (uint i = 0; i < 2; ++i) {
+        result.dist[i] = sqrt(result.dist[i]);
+    }
+
+    return result;
+}
+
+Voronoi2 voronoiNoise(vec2 p) {
+    return voronoiNoise(p, vec2(FLT_MAX));
+}
 
 #endif

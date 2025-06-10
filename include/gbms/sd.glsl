@@ -35,6 +35,7 @@
 #include "srgb.glsl"
 #include "geom.glsl"
 
+
 // Returns the approximate gradient of the SDF for antialiasing. This could be calculated more
 // precisely by taking length of vec2(dx, dy), but the difference isn't visually perceptible for the
 // purposes of antialiasing.
@@ -46,7 +47,7 @@ float sdGradient(float sdf) {
 // produces  visibly worse antialiasing.
 float sdSampleSrgb(float sdf, float gradient) {
     float threshold2 = gradient * 0.5;
-    return ilerp(-threshold2, threshold2, sdf);
+    return clamp(ilerp(threshold2, -threshold2, sdf), 0, 1);
 }
 
 // Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
