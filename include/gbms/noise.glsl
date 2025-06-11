@@ -548,7 +548,8 @@ float voronoiGradient(vec2 p) {
     return compSum(fwidth(p)) / 4;
 }
 
-// Returns the blend factor to antialias `voronoiNoise`.
+// Returns the blend factor to antialias 2D Vornoi noise. Other dimensions must be first projected
+// onto the 2D plane being rendered, or alternatively, you may just sample them multiple times.
 float voronoiAntialias(vec2 p, vec2[2] points, float grad) {
     vec2 line = normalize(points[1] - points[0]);
     vec2 midpoint = mix(points[0], points[1], 0.5);
@@ -559,6 +560,53 @@ float voronoiAntialias(vec2 p, vec2[2] points, float grad) {
 
 float voronoiAntialias(vec2 p, vec2[2] points) {
     return voronoiAntialias(p, points, voronoiGradient(p));
+}
+
+float voronoiAntialias(vec3 p, vec3[2] points, float grad) {
+    vec3 line = normalize(points[1] - points[0]);
+    vec3 midpoint = mix(points[0], points[1], 0.5);
+    vec3 projected = points[0] + line * dot((p - points[0]), line);
+    float dist_to_midpoint = length(projected - midpoint);
+    return 1.0 - clamp(remap(0, grad, 0.5, 1, dist_to_midpoint), 0.5, 1);
+}
+
+struct Voronoi1 {
+    float[2] point;
+    uint[2] id;
+    float[2] dist2;
+};
+
+Voronoi1 voronoiNoise(float p, float period) {
+    Voronoi1 result;
+    for (uint i = 0; i < 2; ++i) {
+        result.dist2[i] = FLT_MAX;
+    }
+    float cell = floor(p);
+
+    for (int offset = -1; offset <= 1; ++offset) {
+        uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+        float point = rand(id) + offset;
+        float dist2 = abs(point - fract(p));
+        for (uint i = 0; i < 2; ++i) {
+            if (dist2 < result.dist2[i]) {
+                if (i < 1) {
+                    result.dist2[i + 1] = result.dist2[i];
+                    result.point[i + 1] = result.point[i];
+                    result.id[i + 1] = result.id[i];
+                }
+                result.dist2[i] = dist2;
+                result.point[i] = floor(p) + point;
+                result.id[i] = id;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+Voronoi1 voronoiNoise(float p) {
+    return voronoiNoise(p, FLT_MAX);
 }
 
 struct Voronoi2 {
@@ -602,5 +650,121 @@ Voronoi2 voronoiNoise(vec2 p, vec2 period) {
 Voronoi2 voronoiNoise(vec2 p) {
     return voronoiNoise(p, vec2(FLT_MAX));
 }
+
+struct Voronoi3 {
+    vec3[2] point;
+    uint[2] id;
+    float[2] dist2;
+};
+
+Voronoi3 voronoiNoise(vec3 p, vec3 period) {
+    Voronoi3 result;
+    for (uint i = 0; i < 2; ++i) {
+        result.dist2[i] = FLT_MAX;
+    }
+    vec3 cell = floor(p);
+
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            for (int z = -1; z <= 1; ++z) {
+                vec3 offset = vec3(x, y, z);
+                uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+                vec3 point = rand3(id) + offset;
+                float dist2 = length2(point - fract(p));
+                for (uint i = 0; i < 2; ++i) {
+                    if (dist2 < result.dist2[i]) {
+                        if (i < 1) {
+                            result.dist2[i + 1] = result.dist2[i];
+                            result.point[i + 1] = result.point[i];
+                            result.id[i + 1] = result.id[i];
+                        }
+                        result.dist2[i] = dist2;
+                        result.point[i] = floor(p) + point;
+                        result.id[i] = id;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+Voronoi3 voronoiNoise(vec3 p) {
+    return voronoiNoise(p, vec3(FLT_MAX));
+}
+
+struct Voronoi4 {
+    vec4[2] point;
+    uint[2] id;
+    float[2] dist2;
+};
+
+Voronoi4 voronoiNoise(vec4 p, vec4 period) {
+    Voronoi4 result;
+    for (uint i = 0; i < 2; ++i) {
+        result.dist2[i] = FLT_MAX;
+    }
+    vec4 cell = floor(p);
+
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            for (int z = -1; z <= 1; ++z) {
+                for (int w = -1; w <= 1; ++w) {
+                    vec4 offset = vec4(x, y, z, w);
+                    uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+                    vec4 point = rand4(id) + offset;
+                    float dist2 = length2(point - fract(p));
+                    for (uint i = 0; i < 2; ++i) {
+                        if (dist2 < result.dist2[i]) {
+                            if (i < 1) {
+                                result.dist2[i + 1] = result.dist2[i];
+                                result.point[i + 1] = result.point[i];
+                                result.id[i + 1] = result.id[i];
+                            }
+                            result.dist2[i] = dist2;
+                            result.point[i] = floor(p) + point;
+                            result.id[i] = id;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+Voronoi4 voronoiNoise(vec4 p) {
+    return voronoiNoise(p, vec4(FLT_MAX));
+}
+
+#define _GBMS_DEF_VORONOI_FBM(genType) \
+float voronoiFbm(genType p, genType period, float hurst, uint octaves) { \
+    float gain = exp2(-hurst); \
+    float scale = 1.0; \
+    float amplitude = 1.0; \
+    float result = 0.0; \
+    float peak = 0.0; \
+    for(int i = 0; i < octaves; ++i) { \
+        result += amplitude * sqrt(voronoiNoise(scale * p, period).dist2[0]); \
+        peak += amplitude; \
+        scale *= 2.0; \
+        amplitude *= gain; \
+    } \
+    return result / peak; \
+} \
+float voronoiFbm(genType p, float hurst, uint octaves) { \
+    return voronoiFbm(p, genType(FLT_MAX), hurst, octaves); \
+}
+
+_GBMS_DEF_VORONOI_FBM(float)
+_GBMS_DEF_VORONOI_FBM(vec2)
+_GBMS_DEF_VORONOI_FBM(vec3)
+_GBMS_DEF_VORONOI_FBM(vec4)
+
+#undef _GBMS_DEF_VALUE_FBM
 
 #endif
