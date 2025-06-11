@@ -2,7 +2,6 @@
 //
 // Conventions:
 // * Following glsl `texture` conventions, `p` is the sample position in texture coordinates
-
 #ifndef INCLUDE_GBMS_NOISE
 #define INCLUDE_GBMS_NOISE
 
@@ -565,39 +564,36 @@ float voronoiAntialias(vec2 p, vec2[2] points) {
 struct Voronoi2 {
     vec2[2] point;
     uint[2] id;
-    float[2] dist;
+    float[2] dist2;
 };
 
 Voronoi2 voronoiNoise(vec2 p, vec2 period) {
     Voronoi2 result;
     for (uint i = 0; i < 2; ++i) {
-        result.dist[i] = FLT_MAX;
+        result.dist2[i] = FLT_MAX;
     }
+    vec2 cell = floor(p);
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
-            vec2 cell = floor(p) + vec2(x, y);
-            uint id = pcgHash(floatBitsToInt(cell));
-            vec2 point = cell + rand2(id);
-            float dist = length2(point - p);
+            vec2 offset = vec2(x, y);
+            uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+            vec2 point = rand2(id) + offset;
+            float dist2 = length2(point - fract(p));
             for (uint i = 0; i < 2; ++i) {
-                if (dist < result.dist[i]) {
+                if (dist2 < result.dist2[i]) {
                     if (i < 1) {
-                        result.dist[i + 1] = result.dist[i];
+                        result.dist2[i + 1] = result.dist2[i];
                         result.point[i + 1] = result.point[i];
                         result.id[i + 1] = result.id[i];
                     }
-                    result.dist[i] = dist;
-                    result.point[i] = point;
+                    result.dist2[i] = dist2;
+                    result.point[i] = floor(p) + point;
                     result.id[i] = id;
                     break;
                 }
             }
         }
-    }
-
-    for (uint i = 0; i < 2; ++i) {
-        result.dist[i] = sqrt(result.dist[i]);
     }
 
     return result;
