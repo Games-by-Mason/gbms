@@ -125,32 +125,32 @@ const float[aa_checker8x8_samples] aa_checker8x8_weights = float[aa_checker8x8_s
 );
 const float aa_checker8x8_gain = 0.03125;
 
-// Equivalent to a guassian blur.
-const uint aa_guassian3x3_samples = 9;
-const vec2[aa_guassian3x3_samples] aa_guassian3x3_offsets = vec2[aa_guassian3x3_samples](
+// Equivalent to a gaussian blur.
+const uint aa_gaussian3x3_samples = 9;
+const vec2[aa_gaussian3x3_samples] aa_gaussian3x3_offsets = vec2[aa_gaussian3x3_samples](
 	vec2(-1.0/3.0, +1.0/3.0), vec2(+0.0/3.0, +1.0/3.0), vec2(+1.0/3.0, +1.0/3.0),
 	vec2(-1.0/3.0, +0.0/3.0), vec2(+0.0/3.0, +0.0/3.0), vec2(+1.0/3.0, +0.0/3.0),
 	vec2(-1.0/3.0, -1.0/3.0), vec2(+0.0/3.0, -1.0/3.0), vec2(+1.0/3.0, -1.0/3.0)
 );
-const float[aa_guassian3x3_samples] aa_guassian3x3_weights = float[aa_guassian3x3_samples](
+const float[aa_gaussian3x3_samples] aa_gaussian3x3_weights = float[aa_gaussian3x3_samples](
 	0.0625, 0.125, 0.0625,
 	0.1250, 0.250, 0.1250,
 	0.0625, 0.125, 0.0625
 );
-const float aa_guassian3x3_gain = 1.0;
+const float aa_gaussian3x3_gain = 1.0;
 
-const uint aa_guassian3x3_no_mid_samples = 8;
-const vec2[aa_guassian3x3_no_mid_samples] aa_guassian3x3_no_mid_offsets = vec2[aa_guassian3x3_no_mid_samples](
+const uint aa_gaussian3x3_no_mid_samples = 8;
+const vec2[aa_gaussian3x3_no_mid_samples] aa_gaussian3x3_no_mid_offsets = vec2[aa_gaussian3x3_no_mid_samples](
 	vec2(-1.0/3.0, +1.0/3.0), vec2(+0.0/3.0, +1.0/3.0), vec2(+1.0/3.0, +1.0/3.0),
 	vec2(-1.0/3.0, +0.0/3.0), /*vec2(+0.0/3.0, +0.0/3.0),*/ vec2(+1.0/3.0, +0.0/3.0),
 	vec2(-1.0/3.0, -1.0/3.0), vec2(+0.0/3.0, -1.0/3.0), vec2(+1.0/3.0, -1.0/3.0)
 );
-const float[aa_guassian3x3_no_mid_samples] aa_guassian3x3_no_mid_weights = float[aa_guassian3x3_no_mid_samples](
+const float[aa_gaussian3x3_no_mid_samples] aa_gaussian3x3_no_mid_weights = float[aa_gaussian3x3_no_mid_samples](
 	0.0625, 0.125, 0.0625,
 	0.1250, /*0.250,*/ 0.1250,
 	0.0625, 0.125, 0.0625
 );
-const float aa_guassian3x3_no_mid_gain = 1.0;
-const float aa_guassian3x3_no_mid_mid_gain = 0.250;
+const float aa_gaussian3x3_no_mid_gain = 1.0;
+const float aa_gaussian3x3_no_mid_mid_gain = 0.250;
 
 #endif
