@@ -125,6 +125,7 @@ const float[aa_checker8x8_samples] aa_checker8x8_weights = float[aa_checker8x8_s
 );
 const float aa_checker8x8_gain = 0.03125;
 
+// Equivalent to a guassian blur.
 const uint aa_guassian3x3_samples = 9;
 const vec2[aa_guassian3x3_samples] aa_guassian3x3_offsets = vec2[aa_guassian3x3_samples](
 	vec2(-1.0/3.0, +1.0/3.0), vec2(+0.0/3.0, +1.0/3.0), vec2(+1.0/3.0, +1.0/3.0),
