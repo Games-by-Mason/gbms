@@ -458,56 +458,6 @@ float perlinNoise(vec4 p) {
     return perlinNoise(p, vec4(FLT_MAX));
 }
 
-#define _GBMS_DEF_VALUE_FBM(genType) \
-float valueFbm(genType p, genType period, float hurst, uint octaves) { \
-    float gain = exp2(-hurst); \
-    float scale = 1.0; \
-    float amplitude = 1.0; \
-    float result = 0.0; \
-    float peak = 0.0; \
-    for(int i = 0; i < octaves; ++i) { \
-        result += amplitude * valueNoise(scale * p, period); \
-        peak += amplitude; \
-        scale *= 2.0; \
-        amplitude *= gain; \
-    } \
-    return result / peak; \
-} \
-float valueFbm(genType p, float hurst, uint octaves) { \
-    return valueFbm(p, genType(FLT_MAX), hurst, octaves); \
-}
-
-_GBMS_DEF_VALUE_FBM(float)
-_GBMS_DEF_VALUE_FBM(vec2)
-_GBMS_DEF_VALUE_FBM(vec3)
-_GBMS_DEF_VALUE_FBM(vec4)
-
-#undef _GBMS_DEF_VALUE_FBM
-
-#define _GBMS_DEF_PERLIN_FBM(genType) \
-float perlinFbm(genType p, genType period, float hurst, uint octaves) { \
-    float gain = exp2(-hurst); \
-    float scale = 1.0; \
-    float amplitude = 1.0; \
-    float result = 0.0; \
-    for(int i = 0; i < octaves; ++i) { \
-        result += amplitude * perlinNoise(scale * p, period); \
-        scale *= 2.0; \
-        amplitude *= gain; \
-    } \
-    return result; \
-} \
-float perlinFbm(genType p, float hurst, uint octaves) { \
-    return perlinFbm(p, genType(FLT_MAX), hurst, octaves); \
-}
-
-_GBMS_DEF_PERLIN_FBM(float)
-_GBMS_DEF_PERLIN_FBM(vec2)
-_GBMS_DEF_PERLIN_FBM(vec3)
-_GBMS_DEF_PERLIN_FBM(vec4)
-
-#undef _GBMS_DEF_PERLIN_FBM
-
 // Estimates the gradient for `voronoiAntialias`. This gradient isn't stable to rotation of the
 // coordinate system, but it's close enough that the artifacts shouldn't be visible for the expected
 // usage.
@@ -842,23 +792,82 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p) {
     return voronoiNoiseF1F2(p, vec4(FLT_MAX));
 }
 
-#define _GBMS_DEF_VORONOI_FBM(genType) \
-float voronoiFbm(genType p, genType period, float hurst, uint octaves) { \
+// In practice you likely want to just write out the FBM yourself since that's more flexible. That
+// lets you rotate the coordinate system, do things besides addition, etc. However, having these
+// helpers is really nice for quickly trying out ideas.
+#define _GBMS_DEF_VALUE_FBM(genType) \
+float valueFbm(genType p, genType period, float hurst, uint octaves, bool turbulence) { \
     float gain = exp2(-hurst); \
     float scale = 1.0; \
     float amplitude = 1.0; \
     float result = 0.0; \
     float peak = 0.0; \
     for(int i = 0; i < octaves; ++i) { \
-        result += amplitude * sqrt(voronoiNoise(scale * p, period).dist2); \
+        float octave = valueNoise(scale * p, period); \
+        if (turbulence) octave = abs(mix(-1, 1, octave)); \
+        result += amplitude * octave; \
         peak += amplitude; \
         scale *= 2.0; \
         amplitude *= gain; \
     } \
     return result / peak; \
 } \
-float voronoiFbm(genType p, float hurst, uint octaves) { \
-    return voronoiFbm(p, genType(FLT_MAX), hurst, octaves); \
+float valueFbm(genType p, float hurst, uint octaves, bool turbulence) { \
+    return valueFbm(p, genType(FLT_MAX), hurst, octaves, turbulence); \
+}
+
+_GBMS_DEF_VALUE_FBM(float)
+_GBMS_DEF_VALUE_FBM(vec2)
+_GBMS_DEF_VALUE_FBM(vec3)
+_GBMS_DEF_VALUE_FBM(vec4)
+
+#undef _GBMS_DEF_VALUE_FBM
+
+#define _GBMS_DEF_PERLIN_FBM(genType) \
+float perlinFbm(genType p, genType period, float hurst, uint octaves, bool turbulence) { \
+    float gain = exp2(-hurst); \
+    float scale = 1.0; \
+    float amplitude = 1.0; \
+    float result = 0.0; \
+    for(int i = 0; i < octaves; ++i) { \
+        float octave = perlinNoise(scale * p, period); \
+        if (turbulence) octave = abs(octave); \
+        result += amplitude * octave; \
+        scale *= 2.0; \
+        amplitude *= gain; \
+    } \
+    return result; \
+} \
+float perlinFbm(genType p, float hurst, uint octaves, bool turbulence) { \
+    return perlinFbm(p, genType(FLT_MAX), hurst, octaves, turbulence); \
+}
+
+_GBMS_DEF_PERLIN_FBM(float)
+_GBMS_DEF_PERLIN_FBM(vec2)
+_GBMS_DEF_PERLIN_FBM(vec3)
+_GBMS_DEF_PERLIN_FBM(vec4)
+
+#undef _GBMS_DEF_PERLIN_FBM
+
+#define _GBMS_DEF_VORONOI_FBM(genType) \
+float voronoiFbm(genType p, genType period, float hurst, uint octaves, bool turbulence) { \
+    float gain = exp2(-hurst); \
+    float scale = 1.0; \
+    float amplitude = 1.0; \
+    float result = 0.0; \
+    float peak = 0.0; \
+    for(int i = 0; i < octaves; ++i) { \
+        float octave = sqrt(voronoiNoise(scale * p, period).dist2); \
+        if (turbulence) octave = abs(mix(-1, 1, octave)); \
+        result += amplitude * octave; \
+        peak += amplitude; \
+        scale *= 2.0; \
+        amplitude *= gain; \
+    } \
+    return result / peak; \
+} \
+float voronoiFbm(genType p, float hurst, uint octaves, bool turbulence) { \
+    return voronoiFbm(p, genType(FLT_MAX), hurst, octaves, turbulence); \
 }
 
 _GBMS_DEF_VORONOI_FBM(float)
