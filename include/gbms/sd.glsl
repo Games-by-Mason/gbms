@@ -40,7 +40,7 @@
 // precisely by taking length of vec2(dx, dy), but the difference isn't visually perceptible for the
 // purposes of antialiasing.
 float sdGradient(float sdf) {
-    return fwidth(sdf);
+    return fwidthFine(sdf);
 }
 
 // Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
@@ -53,7 +53,7 @@ float sdSampleSrgb(float sdf, float gradient) {
 // Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
 // produces  visibly worse antialiasing.
 float sdSampleSrgb(float sdf) {
-    return sdSampleSrgb(sdf, fwidth(sdf));
+    return sdSampleSrgb(sdf, fwidthFine(sdf));
 }
 
 // Samples a SDF.
@@ -63,7 +63,7 @@ float sdSample(float sdf, float gradient) {
 
 // Samples a SDF.
 float sdSample(float sdf) {
-    return srgbToLinear(sdSampleSrgb(sdf, fwidth(sdf)));
+    return srgbToLinear(sdSampleSrgb(sdf, fwidthFine(sdf)));
 }
 
 // Debug output for an SDF.

@@ -180,24 +180,21 @@ float _perlinGrad1(float p) {
 }
 
 float perlinNoise(float p, float period) {
-    // Get the t value
+    // Get the cell and t value
+    float cell = floor(p);
     float t = fract(p);
 
     // Get the sample offsets
     const float o0 = 0;
     const float o1 = 1;
 
-    // Get the sample coordinates
-    float c0 = mod(floor(p), period);
-    float c1 = mod(c0 + 1.0, period);
-
     // Get the sample gradients
-    float g0 = _perlinGrad1(c0);
-    float g1 = _perlinGrad1(c1);
+    float g0 = _perlinGrad1(mod(cell + o0, period));
+    float g1 = _perlinGrad1(mod(cell + o1, period));
 
     // Get the samples
-    float s0 = dot(g0, mod(p - c0, sign(0.5 - o0) * period));
-    float s1 = dot(g1, mod(p - c1, sign(0.5 - o1) * period));
+    float s0 = dot(g0, mod(t - o0, sign(0.5 - o0) * period));
+    float s1 = dot(g1, mod(t - o1, sign(0.5 - o1) * period));
 
     // Perform linear interpolation with a smootherstep factor
     return mix(s0, s1, smootherstep(fract(p)));
@@ -223,7 +220,8 @@ vec2 _perlinGrad2(vec2 c) {
 }
 
 float perlinNoise(vec2 p, vec2 period) {
-    // Calculate the t value
+    // Get the cell and t value
+    vec2 cell = floor(p);
     vec2 t = fract(p);
 
     // Get the sample offsets
@@ -232,23 +230,17 @@ float perlinNoise(vec2 p, vec2 period) {
     const vec2 o01 = vec2(0, 1);
     const vec2 o11 = vec2(1, 1);
 
-    // Get the sample coordinates
-    vec2 c00 = mod(floor(p + o00), period);
-    vec2 c10 = mod(c00 + o10, period);
-    vec2 c01 = mod(c00 + o01, period);
-    vec2 c11 = mod(c00 + o11, period);
-
     // Get the sample gradients
-    vec2 g00 = _perlinGrad2(c00);
-    vec2 g10 = _perlinGrad2(c10);
-    vec2 g01 = _perlinGrad2(c01);
-    vec2 g11 = _perlinGrad2(c11);
+    vec2 g00 = _perlinGrad2(mod(cell + o00, period));
+    vec2 g10 = _perlinGrad2(mod(cell + o10, period));
+    vec2 g01 = _perlinGrad2(mod(cell + o01, period));
+    vec2 g11 = _perlinGrad2(mod(cell + o11, period));
 
     // Get the samples
-    float s00 = dot(g00, mod(p - c00, sign(0.5 - o00) * period));
-    float s10 = dot(g10, mod(p - c10, sign(0.5 - o10) * period));
-    float s01 = dot(g01, mod(p - c01, sign(0.5 - o01) * period));
-    float s11 = dot(g11, mod(p - c11, sign(0.5 - o11) * period));
+    float s00 = dot(g00, mod(t - o00, sign(0.5 - o00) * period));
+    float s10 = dot(g10, mod(t - o10, sign(0.5 - o10) * period));
+    float s01 = dot(g01, mod(t - o01, sign(0.5 - o01) * period));
+    float s11 = dot(g11, mod(t - o11, sign(0.5 - o11) * period));
 
     // Perform bilinear interpolation with a smootherstep factor
     vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
@@ -282,7 +274,8 @@ vec3 _perlinGrad3(vec3 c) {
 }
 
 float perlinNoise(vec3 p, vec3 period) {
-    // Get the t value
+    // Get the cell and t value
+    vec3 cell = floor(p);
     vec3 t = fract(p);
 
     // Get the sample offsets
@@ -295,35 +288,25 @@ float perlinNoise(vec3 p, vec3 period) {
     const vec3 o011 = vec3(0, 1, 1);
     const vec3 o111 = vec3(1, 1, 1);
 
-    // Get the sample coordinates
-    vec3 c000 = mod(floor(p + o000), period);
-    vec3 c100 = mod(c000 + o100, period);
-    vec3 c010 = mod(c000 + o010, period);
-    vec3 c110 = mod(c000 + o110, period);
-    vec3 c001 = mod(c000 + o001, period);
-    vec3 c101 = mod(c000 + o101, period);
-    vec3 c011 = mod(c000 + o011, period);
-    vec3 c111 = mod(c000 + o111, period);
-
     // Get the sample gradients
-    vec3 g000 = normalize(mix(vec3(-1), vec3(1), rand3(c000)));
-    vec3 g100 = normalize(mix(vec3(-1), vec3(1), rand3(c100)));
-    vec3 g010 = normalize(mix(vec3(-1), vec3(1), rand3(c010)));
-    vec3 g110 = normalize(mix(vec3(-1), vec3(1), rand3(c110)));
-    vec3 g001 = normalize(mix(vec3(-1), vec3(1), rand3(c001)));
-    vec3 g101 = normalize(mix(vec3(-1), vec3(1), rand3(c101)));
-    vec3 g011 = normalize(mix(vec3(-1), vec3(1), rand3(c011)));
-    vec3 g111 = normalize(mix(vec3(-1), vec3(1), rand3(c111)));
+    vec3 g000 = _perlinGrad3(mod(cell + o000, period));
+    vec3 g100 = _perlinGrad3(mod(cell + o100, period));
+    vec3 g010 = _perlinGrad3(mod(cell + o010, period));
+    vec3 g110 = _perlinGrad3(mod(cell + o110, period));
+    vec3 g001 = _perlinGrad3(mod(cell + o001, period));
+    vec3 g101 = _perlinGrad3(mod(cell + o101, period));
+    vec3 g011 = _perlinGrad3(mod(cell + o011, period));
+    vec3 g111 = _perlinGrad3(mod(cell + o111, period));
 
     // Get the sample values
-    float s000 = dot(g000, mod(p - c000, sign(0.5 - o000) * period));
-    float s100 = dot(g100, mod(p - c100, sign(0.5 - o100) * period));
-    float s010 = dot(g010, mod(p - c010, sign(0.5 - o010) * period));
-    float s110 = dot(g110, mod(p - c110, sign(0.5 - o110) * period));
-    float s001 = dot(g001, mod(p - c001, sign(0.5 - o001) * period));
-    float s101 = dot(g101, mod(p - c101, sign(0.5 - o101) * period));
-    float s011 = dot(g011, mod(p - c011, sign(0.5 - o011) * period));
-    float s111 = dot(g111, mod(p - c111, sign(0.5 - o111) * period));
+    float s000 = dot(g000, mod(t - o000, sign(0.5 - o000) * period));
+    float s100 = dot(g100, mod(t - o100, sign(0.5 - o100) * period));
+    float s010 = dot(g010, mod(t - o010, sign(0.5 - o010) * period));
+    float s110 = dot(g110, mod(t - o110, sign(0.5 - o110) * period));
+    float s001 = dot(g001, mod(t - o001, sign(0.5 - o001) * period));
+    float s101 = dot(g101, mod(t - o101, sign(0.5 - o101) * period));
+    float s011 = dot(g011, mod(t - o011, sign(0.5 - o011) * period));
+    float s111 = dot(g111, mod(t - o111, sign(0.5 - o111) * period));
 
     // Perform trilinear interpolation with a smootherstep factor
     vec4 i00_i10_i01_i11 = mix(
@@ -386,7 +369,8 @@ vec4 _perlinGrad4(vec4 c) {
 }
 
 float perlinNoise(vec4 p, vec4 period) {
-    // Get the t value
+    // Get the cell and t value
+    vec4 cell = floor(p);
     vec4 t = fract(p);
 
     // Get the sample offsets
@@ -407,59 +391,41 @@ float perlinNoise(vec4 p, vec4 period) {
     const vec4 o0111 = vec4(0, 1, 1, 1);
     const vec4 o1111 = vec4(1, 1, 1, 1);
 
-    // Get the sample coordinates
-    vec4 c0000 = mod(floor(p), period);
-    vec4 c1000 = mod(c0000 + o1000, period);
-    vec4 c0100 = mod(c0000 + o0100, period);
-    vec4 c1100 = mod(c0000 + o1100, period);
-    vec4 c0010 = mod(c0000 + o0010, period);
-    vec4 c1010 = mod(c0000 + o1010, period);
-    vec4 c0110 = mod(c0000 + o0110, period);
-    vec4 c1110 = mod(c0000 + o1110, period);
-    vec4 c0001 = mod(c0000 + o0001, period);
-    vec4 c1001 = mod(c0000 + o1001, period);
-    vec4 c0101 = mod(c0000 + o0101, period);
-    vec4 c1101 = mod(c0000 + o1101, period);
-    vec4 c0011 = mod(c0000 + o0011, period);
-    vec4 c1011 = mod(c0000 + o1011, period);
-    vec4 c0111 = mod(c0000 + o0111, period);
-    vec4 c1111 = mod(c0000 + o1111, period);
-
     // Get the sample gradients
-    vec4 g0000 = _perlinGrad4(c0000);
-    vec4 g1000 = _perlinGrad4(c1000);
-    vec4 g0100 = _perlinGrad4(c0100);
-    vec4 g1100 = _perlinGrad4(c1100);
-    vec4 g0010 = _perlinGrad4(c0010);
-    vec4 g1010 = _perlinGrad4(c1010);
-    vec4 g0110 = _perlinGrad4(c0110);
-    vec4 g1110 = _perlinGrad4(c1110);
-    vec4 g0001 = _perlinGrad4(c0001);
-    vec4 g1001 = _perlinGrad4(c1001);
-    vec4 g0101 = _perlinGrad4(c0101);
-    vec4 g1101 = _perlinGrad4(c1101);
-    vec4 g0011 = _perlinGrad4(c0011);
-    vec4 g1011 = _perlinGrad4(c1011);
-    vec4 g0111 = _perlinGrad4(c0111);
-    vec4 g1111 = _perlinGrad4(c1111);
+    vec4 g0000 = _perlinGrad4(mod(cell + o0000, period));
+    vec4 g1000 = _perlinGrad4(mod(cell + o1000, period));
+    vec4 g0100 = _perlinGrad4(mod(cell + o0100, period));
+    vec4 g1100 = _perlinGrad4(mod(cell + o1100, period));
+    vec4 g0010 = _perlinGrad4(mod(cell + o0010, period));
+    vec4 g1010 = _perlinGrad4(mod(cell + o1010, period));
+    vec4 g0110 = _perlinGrad4(mod(cell + o0110, period));
+    vec4 g1110 = _perlinGrad4(mod(cell + o1110, period));
+    vec4 g0001 = _perlinGrad4(mod(cell + o0001, period));
+    vec4 g1001 = _perlinGrad4(mod(cell + o1001, period));
+    vec4 g0101 = _perlinGrad4(mod(cell + o0101, period));
+    vec4 g1101 = _perlinGrad4(mod(cell + o1101, period));
+    vec4 g0011 = _perlinGrad4(mod(cell + o0011, period));
+    vec4 g1011 = _perlinGrad4(mod(cell + o1011, period));
+    vec4 g0111 = _perlinGrad4(mod(cell + o0111, period));
+    vec4 g1111 = _perlinGrad4(mod(cell + o1111, period));
 
     // Get the sample values
-    float s0000 = dot(g0000, mod(p - c0000, sign(0.5 - o0000) * period));
-    float s1000 = dot(g1000, mod(p - c1000, sign(0.5 - o1000) * period));
-    float s0100 = dot(g0100, mod(p - c0100, sign(0.5 - o0100) * period));
-    float s1100 = dot(g1100, mod(p - c1100, sign(0.5 - o1100) * period));
-    float s0010 = dot(g0010, mod(p - c0010, sign(0.5 - o0010) * period));
-    float s1010 = dot(g1010, mod(p - c1010, sign(0.5 - o1010) * period));
-    float s0110 = dot(g0110, mod(p - c0110, sign(0.5 - o0110) * period));
-    float s1110 = dot(g1110, mod(p - c1110, sign(0.5 - o1110) * period));
-    float s0001 = dot(g0001, mod(p - c0001, sign(0.5 - o0001) * period));
-    float s1001 = dot(g1001, mod(p - c1001, sign(0.5 - o1001) * period));
-    float s0101 = dot(g0101, mod(p - c0101, sign(0.5 - o0101) * period));
-    float s1101 = dot(g1101, mod(p - c1101, sign(0.5 - o1101) * period));
-    float s0011 = dot(g0011, mod(p - c0011, sign(0.5 - o0011) * period));
-    float s1011 = dot(g1011, mod(p - c1011, sign(0.5 - o1011) * period));
-    float s0111 = dot(g0111, mod(p - c0111, sign(0.5 - o0111) * period));
-    float s1111 = dot(g1111, mod(p - c1111, sign(0.5 - o1111) * period));
+    float s0000 = dot(g0000, mod(t - o0000, sign(0.5 - o0000) * period));
+    float s1000 = dot(g1000, mod(t - o1000, sign(0.5 - o1000) * period));
+    float s0100 = dot(g0100, mod(t - o0100, sign(0.5 - o0100) * period));
+    float s1100 = dot(g1100, mod(t - o1100, sign(0.5 - o1100) * period));
+    float s0010 = dot(g0010, mod(t - o0010, sign(0.5 - o0010) * period));
+    float s1010 = dot(g1010, mod(t - o1010, sign(0.5 - o1010) * period));
+    float s0110 = dot(g0110, mod(t - o0110, sign(0.5 - o0110) * period));
+    float s1110 = dot(g1110, mod(t - o1110, sign(0.5 - o1110) * period));
+    float s0001 = dot(g0001, mod(t - o0001, sign(0.5 - o0001) * period));
+    float s1001 = dot(g1001, mod(t - o1001, sign(0.5 - o1001) * period));
+    float s0101 = dot(g0101, mod(t - o0101, sign(0.5 - o0101) * period));
+    float s1101 = dot(g1101, mod(t - o1101, sign(0.5 - o1101) * period));
+    float s0011 = dot(g0011, mod(t - o0011, sign(0.5 - o0011) * period));
+    float s1011 = dot(g1011, mod(t - o1011, sign(0.5 - o1011) * period));
+    float s0111 = dot(g0111, mod(t - o0111, sign(0.5 - o0111) * period));
+    float s1111 = dot(g1111, mod(t - o1111, sign(0.5 - o1111) * period));
 
     // Perform quadlinear interpolation with a smootherstep factor
     vec4 i000_s100_s010_s110 = mix(
@@ -546,7 +512,7 @@ _GBMS_DEF_PERLIN_FBM(vec4)
 // coordinate system, but it's close enough that the artifacts shouldn't be visible for the expected
 // usage.
 float voronoiGradient(vec2 p) {
-    return compSum(fwidth(p)) / 4;
+    return compSum(fwidthCoarse(p)) / 4;
 }
 
 // Returns the blend factor to antialias 2D Vornoi noise. Other dimensions must be first projected
@@ -590,7 +556,7 @@ Voronoi1D voronoiNoise(float p, float period) {
         float dist2 = abs(point - fract(p));
         if (dist2 < result.dist2) {
             result.dist2 = dist2;
-            result.point = floor(p) + point;
+            result.point = cell + point;
             result.id = id;
         }
     }
@@ -628,7 +594,7 @@ Voronoi1DF1F2 voronoiNoiseF1F2(float p, float period) {
                     result.id[i + 1] = result.id[i];
                 }
                 result.dist2[i] = dist2;
-                result.point[i] = floor(p) + point;
+                result.point[i] = cell + point;
                 result.id[i] = id;
                 break;
             }
@@ -661,7 +627,7 @@ Voronoi2D voronoiNoise(vec2 p, vec2 period) {
             float dist2 = length2(point - fract(p));
             if (dist2 < result.dist2) {
                 result.dist2 = dist2;
-                result.point = floor(p) + point;
+                result.point = cell + point;
                 result.id = id;
             }
         }
@@ -701,7 +667,7 @@ Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p, vec2 period) {
                         result.id[i + 1] = result.id[i];
                     }
                     result.dist2[i] = dist2;
-                    result.point[i] = floor(p) + point;
+                    result.point[i] = cell + point;
                     result.id[i] = id;
                     break;
                 }
@@ -736,7 +702,7 @@ Voronoi3D voronoiNoise(vec3 p, vec3 period) {
                 float dist2 = length2(point - fract(p));
                 if (dist2 < result.dist2) {
                     result.dist2 = dist2;
-                    result.point = floor(p) + point;
+                    result.point = cell + point;
                     result.id = id;
                 }
             }
@@ -778,7 +744,7 @@ Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
                             result.id[i + 1] = result.id[i];
                         }
                         result.dist2[i] = dist2;
-                        result.point[i] = floor(p) + point;
+                        result.point[i] = cell + point;
                         result.id[i] = id;
                         break;
                     }
@@ -815,7 +781,7 @@ Voronoi4D voronoiNoise(vec4 p, vec4 period) {
                     float dist2 = length2(point - fract(p));
                     if (dist2 < result.dist2) {
                         result.dist2 = dist2;
-                        result.point = floor(p) + point;
+                        result.point = cell + point;
                         result.id = id;
                     }
                 }
@@ -859,7 +825,7 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
                                 result.id[i + 1] = result.id[i];
                             }
                             result.dist2[i] = dist2;
-                            result.point[i] = floor(p) + point;
+                            result.point[i] = cell + point;
                             result.id[i] = id;
                             break;
                         }
