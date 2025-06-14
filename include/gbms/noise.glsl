@@ -216,7 +216,7 @@ vec2 _perlinGrad2(vec2 c) {
         normalize(vec2(1, 0)),
         normalize(vec2(1, 1))
     );
-    return gradients[pcgHash(uvec2(floatBitsToInt(c))) % 8];
+    return gradients[hash(uvec2(floatBitsToInt(c))).x % 8];
 }
 
 float perlinNoise(vec2 p, vec2 period) {
@@ -270,7 +270,7 @@ vec3 _perlinGrad3(vec3 c) {
         normalize(vec3(1, 0, 1)),
         normalize(vec3(1, 1, 0))
     );
-    return gradients[pcgHash(uvec3(floatBitsToInt(c))) % 12]; // Index not uniform, but close enough
+    return gradients[hash(uvec3(floatBitsToInt(c))).x % 12]; // Index not uniform, but close enough
 }
 
 float perlinNoise(vec3 p, vec3 period) {
@@ -365,7 +365,7 @@ vec4 _perlinGrad4(vec4 c) {
         normalize(vec4(1, 1, 0, 1)),
         normalize(vec4(1, 1, 1, 0))
     );
-    return gradients[pcgHash(uvec4(floatBitsToInt(c))) % 32];
+    return gradients[hash(uvec4(floatBitsToInt(c))).x % 32];
 }
 
 float perlinNoise(vec4 p, vec4 period) {
@@ -501,7 +501,7 @@ Voronoi1D voronoiNoise(float p, float period) {
     float cell = floor(p);
 
     for (int offset = -1; offset <= 1; ++offset) {
-        uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+        uint id = hash(floatBitsToInt(mod(cell + offset, period)));
         float point = rand(id) + offset;
         float dist2 = abs(point - fract(p));
         if (dist2 < result.dist2) {
@@ -533,7 +533,7 @@ Voronoi1DF1F2 voronoiNoiseF1F2(float p, float period) {
     float cell = floor(p);
 
     for (int offset = -1; offset <= 1; ++offset) {
-        uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+        uint id = hash(floatBitsToInt(mod(cell + offset, period)));
         float point = rand(id) + offset;
         float dist2 = abs(point - fract(p));
         for (uint i = 0; i < 2; ++i) {
@@ -572,7 +572,7 @@ Voronoi2D voronoiNoise(vec2 p, vec2 period) {
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             vec2 offset = vec2(x, y);
-            uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+            uint id = hash(floatBitsToInt(mod(cell + offset, period))).x;
             vec2 point = rand2(id) + offset;
             float dist2 = length2(point - fract(p));
             if (dist2 < result.dist2) {
@@ -606,7 +606,7 @@ Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p, vec2 period) {
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             vec2 offset = vec2(x, y);
-            uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+            uint id = hash(floatBitsToInt(mod(cell + offset, period))).x;
             vec2 point = rand2(id) + offset;
             float dist2 = length2(point - fract(p));
             for (uint i = 0; i < 2; ++i) {
@@ -647,7 +647,7 @@ Voronoi3D voronoiNoise(vec3 p, vec3 period) {
         for (int y = -1; y <= 1; ++y) {
             for (int z = -1; z <= 1; ++z) {
                 vec3 offset = vec3(x, y, z);
-                uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+                uint id = hash(floatBitsToInt(mod(cell + offset, period))).x;
                 vec3 point = rand3(id) + offset;
                 float dist2 = length2(point - fract(p));
                 if (dist2 < result.dist2) {
@@ -683,7 +683,7 @@ Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
         for (int y = -1; y <= 1; ++y) {
             for (int z = -1; z <= 1; ++z) {
                 vec3 offset = vec3(x, y, z);
-                uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+                uint id = hash(floatBitsToInt(mod(cell + offset, period))).x;
                 vec3 point = rand3(id) + offset;
                 float dist2 = length2(point - fract(p));
                 for (uint i = 0; i < 2; ++i) {
@@ -726,7 +726,7 @@ Voronoi4D voronoiNoise(vec4 p, vec4 period) {
             for (int z = -1; z <= 1; ++z) {
                 for (int w = -1; w <= 1; ++w) {
                     vec4 offset = vec4(x, y, z, w);
-                    uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+                    uint id = hash(floatBitsToInt(mod(cell + offset, period))).x;
                     vec4 point = rand4(id) + offset;
                     float dist2 = length2(point - fract(p));
                     if (dist2 < result.dist2) {
@@ -764,7 +764,7 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
             for (int z = -1; z <= 1; ++z) {
                 for (int w = -1; w <= 1; ++w) {
                     vec4 offset = vec4(x, y, z, w);
-                    uint id = pcgHash(floatBitsToInt(mod(cell + offset, period)));
+                    uint id = hash(floatBitsToInt(mod(cell + offset, period))).x;
                     vec4 point = rand4(id) + offset;
                     float dist2 = length2(point - fract(p));
                     for (uint i = 0; i < 2; ++i) {
