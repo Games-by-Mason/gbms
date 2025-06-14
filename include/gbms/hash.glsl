@@ -4,7 +4,7 @@
 // Use `floatBitsToInt` if your inputs are floats.
 //
 // All provided functions are on the Pareto frontier of performance and quality according to this
-// paper:
+// paper unless otherwise noted:
 //
 // https://jcgt.org/published/0009/03/02/
 
@@ -18,6 +18,20 @@ uint pcg(uint s) {
     uint state = s * 747796405u + 2891336453u;
     uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
     return (word >> 22u) ^ word;
+}
+
+// Adapted from: https://jcgt.org/published/0009/03/02/
+//
+// Unclear if on the pareto frontier, but not sure what their recommendation is for 2 -> 2 hashes.
+uvec2 pcg2d(uvec2 v) {
+    v = v * 1664525u + 1013904223u;
+    v.x += v.y * 1664525u;
+    v.y += v.x * 1664525u;
+    v = v ^ (v >> 16u);
+    v.x += v.y * 1664525u;
+    v.y += v.x * 1664525u;
+    v = v ^ (v >> 16u);
+    return v;
 }
 
 // Adapted from: https://jcgt.org/published/0009/03/02/
@@ -53,7 +67,7 @@ uint hash(uint s) {
 }
 
 uvec2 hash(uvec2 s) {
-    return pcg3d(uvec3(s, 0)).xy;
+    return pcg2d(s);
 }
 
 uvec3 hash(uvec3 s) {
