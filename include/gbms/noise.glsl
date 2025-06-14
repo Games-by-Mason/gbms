@@ -528,7 +528,7 @@ Voronoi1D voronoiNoise(float p, float period) {
     for (int offset = -1; offset <= 1; ++offset) {
         uint hashed = hash(int(mod(cell + offset, period)));
         uint id = hashed;
-        float point = float(hashed) / UINT_MAX + offset;
+        float point = float(hashed) * UINT_MAX_RECIP + offset;
         float dist2 = abs(point - fract(p));
         if (dist2 < result.dist2) {
             result.dist2 = dist2;
@@ -561,7 +561,7 @@ Voronoi1DF1F2 voronoiNoiseF1F2(float p, float period) {
     for (int offset = -1; offset <= 1; ++offset) {
         uint hashed = hash(int(mod(cell + offset, period)));
         uint id = hashed;
-        float point = float(hashed) / UINT_MAX + offset;
+        float point = float(hashed) * UINT_MAX_RECIP + offset;
         float dist2 = abs(point - fract(p));
         for (uint i = 0; i < 2; ++i) {
             if (dist2 < result.dist2[i]) {
@@ -601,7 +601,7 @@ Voronoi2D voronoiNoise(vec2 p, vec2 period) {
             vec2 offset = vec2(x, y);
             uvec2 hashed = hash(ivec2(mod(cell + offset, period)));
             uint id = hashed.x;
-            vec2 point = vec2(hashed) / UINT_MAX + offset;
+            vec2 point = vec2(hashed) * UINT_MAX_RECIP + offset;
             float dist2 = length2(point - fract(p));
             if (dist2 < result.dist2) {
                 result.dist2 = dist2;
@@ -636,7 +636,7 @@ Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p, vec2 period) {
             vec2 offset = vec2(x, y);
             uvec2 hashed = hash(ivec2(mod(cell + offset, period)));
             uint id = hashed.x;
-            vec2 point = vec2(hashed) / UINT_MAX + offset;
+            vec2 point = vec2(hashed) * UINT_MAX_RECIP + offset;
             float dist2 = length2(point - fract(p));
             for (uint i = 0; i < 2; ++i) {
                 if (dist2 < result.dist2[i]) {
@@ -678,7 +678,7 @@ Voronoi3D voronoiNoise(vec3 p, vec3 period) {
                 vec3 offset = vec3(x, y, z);
                 uvec3 hashed = hash(ivec3(mod(cell + offset, period)));
                 uint id = hashed.x;
-                vec3 point = vec3(hashed) / UINT_MAX + offset;
+                vec3 point = vec3(hashed) * UINT_MAX_RECIP + offset;
                 float dist2 = length2(point - fract(p));
                 if (dist2 < result.dist2) {
                     result.dist2 = dist2;
@@ -715,7 +715,7 @@ Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
                 vec3 offset = vec3(x, y, z);
                 uvec3 hashed = hash(ivec3(mod(cell + offset, period)));
                 uint id = hashed.x;
-                vec3 point = vec3(hashed) / UINT_MAX + offset;
+                vec3 point = vec3(hashed) * UINT_MAX_RECIP + offset;
                 float dist2 = length2(point - fract(p));
                 for (uint i = 0; i < 2; ++i) {
                     if (dist2 < result.dist2[i]) {
@@ -759,7 +759,7 @@ Voronoi4D voronoiNoise(vec4 p, vec4 period) {
                     vec4 offset = vec4(x, y, z, w);
                     uvec4 hashed = hash(ivec4(mod(cell + offset, period)));
                     uint id = hashed.x;
-                    vec4 point = vec4(hashed) / UINT_MAX + offset;
+                    vec4 point = vec4(hashed) * UINT_MAX_RECIP + offset;
                     float dist2 = length2(point - fract(p));
                     if (dist2 < result.dist2) {
                         result.dist2 = dist2;
@@ -798,7 +798,7 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
                     vec4 offset = vec4(x, y, z, w);
                     uvec4 hashed = hash(ivec4(mod(cell + offset, period)));
                     uint id = hashed.x;
-                    vec4 point = vec4(hashed) / UINT_MAX + offset;
+                    vec4 point = vec4(hashed) * UINT_MAX_RECIP + offset;
                     float dist2 = length2(point - fract(p));
                     for (uint i = 0; i < 2; ++i) {
                         if (dist2 < result.dist2[i]) {

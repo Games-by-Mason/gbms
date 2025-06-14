@@ -15,6 +15,10 @@
 // paper unless otherwise noted:
 //
 // https://jcgt.org/published/0009/03/02/
+//
+// These functions are mirrored in `geom`:
+//
+// https://github.com/Games-by-Mason/geom
 
 #ifndef INCLUDE_GBMS_HASH
 #define INCLUDE_GBMS_HASH
