@@ -1,4 +1,8 @@
 // Convenience wrappers around `hash` that return random vectors or scalars between 0 and 1.
+//
+// See `hash.glsl` for more info on what algorithms are used. Note that 1 -> N hashes where N > 1
+// tend not to be as high quality as N -> N or N -> 1, you should try to match the number of output
+// components with inputs when possible.
 
 #ifndef INCLUDE_GBMS_RAND
 #define INCLUDE_GBMS_RAND
@@ -38,7 +42,7 @@ float rand(vec4 s) {
 }
 
 vec2 rand2(uint s) {
-    return vec2(hash(uvec2(s, 0))) / UINT_MAX;
+    return vec2(hash(uvec2(s, 1))) / UINT_MAX;
 }
 
 vec2 rand2(uvec2 s) {
@@ -70,11 +74,11 @@ vec2 rand2(vec4 s) {
 }
 
 vec3 rand3(uint s) {
-    return vec3(hash(uvec3(s, 0, 0))) / UINT_MAX;
+    return vec3(hash(uvec3(s, 1, 1))) / UINT_MAX;
 }
 
 vec3 rand3(uvec2 s) {
-    return vec3(hash(uvec3(s, 0))) / UINT_MAX;
+    return vec3(hash(uvec3(s, 1))) / UINT_MAX;
 }
 
 vec3 rand3(uvec3 s) {
@@ -102,15 +106,15 @@ vec3 rand3(vec4 s) {
 }
 
 vec4 rand4(uint s) {
-    return vec4(hash(uvec4(s, 0, 0, 0))) / UINT_MAX;
+    return vec4(hash(uvec4(s, 1, 1, 1))) / UINT_MAX;
 }
 
 vec4 rand4(uvec2 s) {
-    return vec4(hash(uvec4(s, 0, 0))) / UINT_MAX;
+    return vec4(hash(uvec4(s, 1, 1))) / UINT_MAX;
 }
 
 vec4 rand4(uvec3 s) {
-    return vec4(hash(uvec4(s, 0))) / UINT_MAX;
+    return vec4(hash(uvec4(s, 1))) / UINT_MAX;
 }
 
 vec4 rand4(uvec4 s) {

@@ -1,7 +1,15 @@
-// Provides a variety of hash functions. Use the named functions when you want a specific algorithm,
-// use `hash` when you just want a balanced choice for your input type.
+// Provides a variety of hash functions.
 //
-// Use `floatBitsToInt` if your inputs are floats.
+// Use the named functions when you want a specific algorithm, use `hash` when you just want a
+// balanced choice for your input type. Once the library stabilizes, the unnamed hash functions will
+// only be modified by versioning their names or with major releases, since changing them could
+// break existing effects.
+//
+// If your inputs are floats, you may convert them using `floatBitsToInt(...)`. However if they are
+// whole number floats, you may get a better quality hash by instead casting to an integer type.
+// Notably, `pcg3d` and `pcg4d` perform poorly on whole number floats that are bit casted. This can
+// be revealed by taking the modulo of the result with a power of two as happens in a typical Perlin
+// noise implementation.
 //
 // All provided functions are on the Pareto frontier of performance and quality according to this
 // paper unless otherwise noted:

@@ -27,7 +27,7 @@ float valueNoise(float p, float period) {
 }
 
 float valueNoise(float p) {
-    return valueNoise(p, FLT_MAX);
+    return valueNoise(p, FLT_MAX_CONSEC);
 }
 
 float valueNoise(vec2 p, vec2 period) {
@@ -55,7 +55,7 @@ float valueNoise(vec2 p, vec2 period) {
 }
 
 float valueNoise(vec2 p) {
-    return valueNoise(p, vec2(FLT_MAX));
+    return valueNoise(p, vec2(FLT_MAX_CONSEC));
 }
 
 float valueNoise(vec3 p, vec3 period) {
@@ -100,7 +100,7 @@ float valueNoise(vec3 p, vec3 period) {
 }
 
 float valueNoise(vec3 p) {
-    return valueNoise(p, vec3(FLT_MAX));
+    return valueNoise(p, vec3(FLT_MAX_CONSEC));
 }
 
 float valueNoise(vec4 p, vec4 period) {
@@ -171,12 +171,13 @@ float valueNoise(vec4 p, vec4 period) {
 }
 
 float valueNoise(vec4 p) {
-    return valueNoise(p, vec4(FLT_MAX));
+    return valueNoise(p, vec4(FLT_MAX_CONSEC));
 }
 
-float _perlinGrad1(float p) {
-    // Pick a random value between -1 and 1
-    return mix(-1, 1, mix(-1, 1, rand(p)));
+float _perlinDotGrad1(float cell, float p) {
+    // Mimics `_perlinDotGrad*` API to show how the algorithm generalizes even though we don't
+    // really need to pull this out into a function here.
+    return dot(mix(-1, 1, rand(cell)), p);
 }
 
 float perlinNoise(float p, float period) {
@@ -188,35 +189,44 @@ float perlinNoise(float p, float period) {
     const float o0 = 0;
     const float o1 = 1;
 
-    // Get the sample gradients
-    float g0 = _perlinGrad1(mod(cell + o0, period));
-    float g1 = _perlinGrad1(mod(cell + o1, period));
-
     // Get the samples
-    float s0 = dot(g0, mod(t - o0, sign(0.5 - o0) * period));
-    float s1 = dot(g1, mod(t - o1, sign(0.5 - o1) * period));
+    float s0 = _perlinDotGrad1(mod(cell + o0, period), mod(t - o0, sign(0.5 - o0) * period));
+    float s1 = _perlinDotGrad1(mod(cell + o1, period), mod(t - o1, sign(0.5 - o1) * period));
 
     // Perform linear interpolation with a smootherstep factor
     return mix(s0, s1, smootherstep(fract(p)));
 }
 
 float perlinNoise(float p) {
-    return perlinNoise(p, FLT_MAX);
+    return perlinNoise(p, FLT_MAX_CONSEC);
 }
 
-vec2 _perlinGrad2(vec2 c) {
-    // Pick a random diagonal unit vector
-    const vec2[8] gradients = vec2[8](
-        normalize(vec2(-1, -1)),
-        normalize(vec2(-1, 0)),
-        normalize(vec2(-1, 1)),
-        normalize(vec2(0, -1)),
-        normalize(vec2(0, 1)),
-        normalize(vec2(1, -1)),
-        normalize(vec2(1, 0)),
-        normalize(vec2(1, 1))
-    );
-    return gradients[hash(uvec2(floatBitsToInt(c))).x % 8];
+float _perlinDotGrad2(vec2 cell, vec2 p) {
+    // Take the dot product of the cell with a random diagonal vector:
+    // - The vector is not supposed to be normalized since the max distance is in fact to a corner.
+    // - We return the dot product instead of the gradient itself since the dot product of a vector
+    //   with only ones and zeroes is easier to compute than that of one that could hold arbitrary
+    //   values.
+    // - We cast the cell to an integer before hashing to better utilize the input space, otherwise
+    //   the modulo results in a bad hash. It must be signed since it may be negative.
+    switch (hash(ivec2(cell)).x % 8) {
+        case 0:
+            return dot(vec2(-1, -1), p);
+        case 1:
+            return dot(vec2(-1, 0), p);
+        case 2:
+            return dot(vec2(-1, 1), p);
+        case 3:
+            return dot(vec2(0, -1), p);
+        case 4:
+            return dot(vec2(0, 1), p);
+        case 5:
+            return dot(vec2(1, -1), p);
+        case 6:
+            return dot(vec2(1, 0), p);
+        case 7:
+            return dot(vec2(1, 1), p);
+    }
 }
 
 float perlinNoise(vec2 p, vec2 period) {
@@ -230,17 +240,11 @@ float perlinNoise(vec2 p, vec2 period) {
     const vec2 o01 = vec2(0, 1);
     const vec2 o11 = vec2(1, 1);
 
-    // Get the sample gradients
-    vec2 g00 = _perlinGrad2(mod(cell + o00, period));
-    vec2 g10 = _perlinGrad2(mod(cell + o10, period));
-    vec2 g01 = _perlinGrad2(mod(cell + o01, period));
-    vec2 g11 = _perlinGrad2(mod(cell + o11, period));
-
     // Get the samples
-    float s00 = dot(g00, mod(t - o00, sign(0.5 - o00) * period));
-    float s10 = dot(g10, mod(t - o10, sign(0.5 - o10) * period));
-    float s01 = dot(g01, mod(t - o01, sign(0.5 - o01) * period));
-    float s11 = dot(g11, mod(t - o11, sign(0.5 - o11) * period));
+    float s00 = _perlinDotGrad2(mod(cell + o00, period), mod(t - o00, sign(0.5 - o00) * period));
+    float s10 = _perlinDotGrad2(mod(cell + o10, period), mod(t - o10, sign(0.5 - o10) * period));
+    float s01 = _perlinDotGrad2(mod(cell + o01, period), mod(t - o01, sign(0.5 - o01) * period));
+    float s11 = _perlinDotGrad2(mod(cell + o11, period), mod(t - o11, sign(0.5 - o11) * period));
 
     // Perform bilinear interpolation with a smootherstep factor
     vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
@@ -251,26 +255,44 @@ float perlinNoise(vec2 p, vec2 period) {
 }
 
 float perlinNoise(vec2 p) {
-    return perlinNoise(p, vec2(FLT_MAX));
+    return perlinNoise(p, vec2(FLT_MAX_CONSEC));
 }
 
-vec3 _perlinGrad3(vec3 c) {
-    // Pick a random diagonal unit vector
-    const vec3[12] gradients = vec3[12](
-        normalize(vec3(-1, -1, 0)),
-        normalize(vec3(-1, 0, -1)),
-        normalize(vec3(-1, 0, 1)),
-        normalize(vec3(-1, 1, 0)),
-        normalize(vec3(0, -1, -1)),
-        normalize(vec3(0, -1, 1)),
-        normalize(vec3(0, 1, -1)),
-        normalize(vec3(0, 1, 1)),
-        normalize(vec3(1, -1, 0)),
-        normalize(vec3(1, 0, -1)),
-        normalize(vec3(1, 0, 1)),
-        normalize(vec3(1, 1, 0))
-    );
-    return gradients[hash(uvec3(floatBitsToInt(c))).x % 12]; // Index not uniform, but close enough
+float _perlinDotGrad3(vec3 cell, vec3 p) {
+    // See `_perlinDotGrad2` for an explanation.
+    //
+    // Duplicate cases make modulo an even multiple, they following a tetrahedron to avoid bias:
+    // https://mrl.cs.nyu.edu/~perlin/paper445.pdf
+    switch (hash(ivec3(cell)).x % 16) {
+        case 0:
+            return dot(vec3(-1, -1, 0), p);
+        case 1:
+            return dot(vec3(-1, 0, -1), p);
+        case 2:
+            return dot(vec3(-1, 0, 1), p);
+        case 3:
+            return dot(vec3(0, 1, -1), p);
+        case 4:
+            return dot(vec3(0, 1, 1), p);
+        case 5:
+            return dot(vec3(1, -1, 0), p);
+        case 6:
+            return dot(vec3(1, 0, -1), p);
+        case 7:
+            return dot(vec3(1, 0, 1), p);
+        case 8:
+        case 9:
+            return dot(vec3(1, 1, 0), p);
+        case 10:
+        case 11:
+            return dot(vec3(-1, 1, 0), p);
+        case 12:
+        case 13:
+            return dot(vec3(0, -1, 1), p);
+        case 14:
+        case 15:
+            return dot(vec3(0, -1, -1), p);
+    }
 }
 
 float perlinNoise(vec3 p, vec3 period) {
@@ -288,25 +310,15 @@ float perlinNoise(vec3 p, vec3 period) {
     const vec3 o011 = vec3(0, 1, 1);
     const vec3 o111 = vec3(1, 1, 1);
 
-    // Get the sample gradients
-    vec3 g000 = _perlinGrad3(mod(cell + o000, period));
-    vec3 g100 = _perlinGrad3(mod(cell + o100, period));
-    vec3 g010 = _perlinGrad3(mod(cell + o010, period));
-    vec3 g110 = _perlinGrad3(mod(cell + o110, period));
-    vec3 g001 = _perlinGrad3(mod(cell + o001, period));
-    vec3 g101 = _perlinGrad3(mod(cell + o101, period));
-    vec3 g011 = _perlinGrad3(mod(cell + o011, period));
-    vec3 g111 = _perlinGrad3(mod(cell + o111, period));
-
     // Get the sample values
-    float s000 = dot(g000, mod(t - o000, sign(0.5 - o000) * period));
-    float s100 = dot(g100, mod(t - o100, sign(0.5 - o100) * period));
-    float s010 = dot(g010, mod(t - o010, sign(0.5 - o010) * period));
-    float s110 = dot(g110, mod(t - o110, sign(0.5 - o110) * period));
-    float s001 = dot(g001, mod(t - o001, sign(0.5 - o001) * period));
-    float s101 = dot(g101, mod(t - o101, sign(0.5 - o101) * period));
-    float s011 = dot(g011, mod(t - o011, sign(0.5 - o011) * period));
-    float s111 = dot(g111, mod(t - o111, sign(0.5 - o111) * period));
+    float s000 = _perlinDotGrad3(mod(cell + o000, period), mod(t - o000, sign(0.5 - o000) * period));
+    float s100 = _perlinDotGrad3(mod(cell + o100, period), mod(t - o100, sign(0.5 - o100) * period));
+    float s010 = _perlinDotGrad3(mod(cell + o010, period), mod(t - o010, sign(0.5 - o010) * period));
+    float s110 = _perlinDotGrad3(mod(cell + o110, period), mod(t - o110, sign(0.5 - o110) * period));
+    float s001 = _perlinDotGrad3(mod(cell + o001, period), mod(t - o001, sign(0.5 - o001) * period));
+    float s101 = _perlinDotGrad3(mod(cell + o101, period), mod(t - o101, sign(0.5 - o101) * period));
+    float s011 = _perlinDotGrad3(mod(cell + o011, period), mod(t - o011, sign(0.5 - o011) * period));
+    float s111 = _perlinDotGrad3(mod(cell + o111, period), mod(t - o111, sign(0.5 - o111) * period));
 
     // Perform trilinear interpolation with a smootherstep factor
     vec4 i00_i10_i01_i11 = mix(
@@ -326,46 +338,77 @@ float perlinNoise(vec3 p, vec3 period) {
 }
 
 float perlinNoise(vec3 p) {
-    return perlinNoise(p, vec3(FLT_MAX));
+    return perlinNoise(p, vec3(FLT_MAX_CONSEC));
 }
 
-vec4 _perlinGrad4(vec4 c) {
-    // Pick a random diagonal unit vector
-    const vec4[32] gradients = vec4[32](
-        normalize(vec4(-1, -1, -1, 0)),
-        normalize(vec4(-1, -1, 0, -1)),
-        normalize(vec4(-1, -1, 0, 1)),
-        normalize(vec4(-1, -1, 1, 0)),
-        normalize(vec4(-1, 0, -1, -1)),
-        normalize(vec4(-1, 0, -1, 1)),
-        normalize(vec4(-1, 0, 1, -1)),
-        normalize(vec4(-1, 0, 1, 1)),
-        normalize(vec4(-1, 1, -1, 0)),
-        normalize(vec4(-1, 1, 0, -1)),
-        normalize(vec4(-1, 1, 0, 1)),
-        normalize(vec4(-1, 1, 1, 0)),
-        normalize(vec4(0, -1, -1, -1)),
-        normalize(vec4(0, -1, -1, 1)),
-        normalize(vec4(0, -1, 1, -1)),
-        normalize(vec4(0, -1, 1, 1)),
-        normalize(vec4(0, 1, -1, -1)),
-        normalize(vec4(0, 1, -1, 1)),
-        normalize(vec4(0, 1, 1, -1)),
-        normalize(vec4(0, 1, 1, 1)),
-        normalize(vec4(1, -1, -1, 0)),
-        normalize(vec4(1, -1, 0, -1)),
-        normalize(vec4(1, -1, 0, 1)),
-        normalize(vec4(1, -1, 1, 0)),
-        normalize(vec4(1, 0, -1, -1)),
-        normalize(vec4(1, 0, -1, 1)),
-        normalize(vec4(1, 0, 1, -1)),
-        normalize(vec4(1, 0, 1, 1)),
-        normalize(vec4(1, 1, -1, 0)),
-        normalize(vec4(1, 1, 0, -1)),
-        normalize(vec4(1, 1, 0, 1)),
-        normalize(vec4(1, 1, 1, 0))
-    );
-    return gradients[hash(uvec4(floatBitsToInt(c))).x % 32];
+float _perlinDotGrad4(vec4 cell, vec4 p) {
+    // See `_perlinDotGrad2` for an explanation.
+    switch (hash(ivec4(cell)).x % 32) {
+        case 0:
+            return dot(vec4(-1, -1, -1, 0), p);
+        case 1:
+            return dot(vec4(-1, -1, 0, -1), p);
+        case 2:
+            return dot(vec4(-1, -1, 0, 1), p);
+        case 3:
+            return dot(vec4(-1, -1, 1, 0), p);
+        case 4:
+            return dot(vec4(-1, 0, -1, -1), p);
+        case 5:
+            return dot(vec4(-1, 0, -1, 1), p);
+        case 6:
+            return dot(vec4(-1, 0, 1, -1), p);
+        case 7:
+            return dot(vec4(-1, 0, 1, 1), p);
+        case 8:
+            return dot(vec4(-1, 1, -1, 0), p);
+        case 9:
+            return dot(vec4(-1, 1, 0, -1), p);
+        case 10:
+            return dot(vec4(-1, 1, 0, 1), p);
+        case 11:
+            return dot(vec4(-1, 1, 1, 0), p);
+        case 12:
+            return dot(vec4(0, -1, -1, -1), p);
+        case 13:
+            return dot(vec4(0, -1, -1, 1), p);
+        case 14:
+            return dot(vec4(0, -1, 1, -1), p);
+        case 15:
+            return dot(vec4(0, -1, 1, 1), p);
+        case 16:
+            return dot(vec4(0, 1, -1, -1), p);
+        case 17:
+            return dot(vec4(0, 1, -1, 1), p);
+        case 18:
+            return dot(vec4(0, 1, 1, -1), p);
+        case 19:
+            return dot(vec4(0, 1, 1, 1), p);
+        case 20:
+            return dot(vec4(1, -1, -1, 0), p);
+        case 21:
+            return dot(vec4(1, -1, 0, -1), p);
+        case 22:
+            return dot(vec4(1, -1, 0, 1), p);
+        case 23:
+            return dot(vec4(1, -1, 1, 0), p);
+        case 24:
+            return dot(vec4(1, 0, -1, -1), p);
+        case 25:
+            return dot(vec4(1, 0, -1, 1), p);
+        case 26:
+            return dot(vec4(1, 0, 1, -1), p);
+        case 27:
+            return dot(vec4(1, 0, 1, 1), p);
+        case 28:
+            return dot(vec4(1, 1, -1, 0), p);
+        case 29:
+            return dot(vec4(1, 1, 0, -1), p);
+        case 30:
+            return dot(vec4(1, 1, 0, 1), p);
+        case 31:
+            return dot(vec4(1, 1, 1, 0), p);
+    }
 }
 
 float perlinNoise(vec4 p, vec4 period) {
@@ -391,41 +434,23 @@ float perlinNoise(vec4 p, vec4 period) {
     const vec4 o0111 = vec4(0, 1, 1, 1);
     const vec4 o1111 = vec4(1, 1, 1, 1);
 
-    // Get the sample gradients
-    vec4 g0000 = _perlinGrad4(mod(cell + o0000, period));
-    vec4 g1000 = _perlinGrad4(mod(cell + o1000, period));
-    vec4 g0100 = _perlinGrad4(mod(cell + o0100, period));
-    vec4 g1100 = _perlinGrad4(mod(cell + o1100, period));
-    vec4 g0010 = _perlinGrad4(mod(cell + o0010, period));
-    vec4 g1010 = _perlinGrad4(mod(cell + o1010, period));
-    vec4 g0110 = _perlinGrad4(mod(cell + o0110, period));
-    vec4 g1110 = _perlinGrad4(mod(cell + o1110, period));
-    vec4 g0001 = _perlinGrad4(mod(cell + o0001, period));
-    vec4 g1001 = _perlinGrad4(mod(cell + o1001, period));
-    vec4 g0101 = _perlinGrad4(mod(cell + o0101, period));
-    vec4 g1101 = _perlinGrad4(mod(cell + o1101, period));
-    vec4 g0011 = _perlinGrad4(mod(cell + o0011, period));
-    vec4 g1011 = _perlinGrad4(mod(cell + o1011, period));
-    vec4 g0111 = _perlinGrad4(mod(cell + o0111, period));
-    vec4 g1111 = _perlinGrad4(mod(cell + o1111, period));
-
     // Get the sample values
-    float s0000 = dot(g0000, mod(t - o0000, sign(0.5 - o0000) * period));
-    float s1000 = dot(g1000, mod(t - o1000, sign(0.5 - o1000) * period));
-    float s0100 = dot(g0100, mod(t - o0100, sign(0.5 - o0100) * period));
-    float s1100 = dot(g1100, mod(t - o1100, sign(0.5 - o1100) * period));
-    float s0010 = dot(g0010, mod(t - o0010, sign(0.5 - o0010) * period));
-    float s1010 = dot(g1010, mod(t - o1010, sign(0.5 - o1010) * period));
-    float s0110 = dot(g0110, mod(t - o0110, sign(0.5 - o0110) * period));
-    float s1110 = dot(g1110, mod(t - o1110, sign(0.5 - o1110) * period));
-    float s0001 = dot(g0001, mod(t - o0001, sign(0.5 - o0001) * period));
-    float s1001 = dot(g1001, mod(t - o1001, sign(0.5 - o1001) * period));
-    float s0101 = dot(g0101, mod(t - o0101, sign(0.5 - o0101) * period));
-    float s1101 = dot(g1101, mod(t - o1101, sign(0.5 - o1101) * period));
-    float s0011 = dot(g0011, mod(t - o0011, sign(0.5 - o0011) * period));
-    float s1011 = dot(g1011, mod(t - o1011, sign(0.5 - o1011) * period));
-    float s0111 = dot(g0111, mod(t - o0111, sign(0.5 - o0111) * period));
-    float s1111 = dot(g1111, mod(t - o1111, sign(0.5 - o1111) * period));
+    float s0000 = _perlinDotGrad4(mod(cell + o0000, period), mod(t - o0000, sign(0.5 - o0000) * period));
+    float s1000 = _perlinDotGrad4(mod(cell + o1000, period), mod(t - o1000, sign(0.5 - o1000) * period));
+    float s0100 = _perlinDotGrad4(mod(cell + o0100, period), mod(t - o0100, sign(0.5 - o0100) * period));
+    float s1100 = _perlinDotGrad4(mod(cell + o1100, period), mod(t - o1100, sign(0.5 - o1100) * period));
+    float s0010 = _perlinDotGrad4(mod(cell + o0010, period), mod(t - o0010, sign(0.5 - o0010) * period));
+    float s1010 = _perlinDotGrad4(mod(cell + o1010, period), mod(t - o1010, sign(0.5 - o1010) * period));
+    float s0110 = _perlinDotGrad4(mod(cell + o0110, period), mod(t - o0110, sign(0.5 - o0110) * period));
+    float s1110 = _perlinDotGrad4(mod(cell + o1110, period), mod(t - o1110, sign(0.5 - o1110) * period));
+    float s0001 = _perlinDotGrad4(mod(cell + o0001, period), mod(t - o0001, sign(0.5 - o0001) * period));
+    float s1001 = _perlinDotGrad4(mod(cell + o1001, period), mod(t - o1001, sign(0.5 - o1001) * period));
+    float s0101 = _perlinDotGrad4(mod(cell + o0101, period), mod(t - o0101, sign(0.5 - o0101) * period));
+    float s1101 = _perlinDotGrad4(mod(cell + o1101, period), mod(t - o1101, sign(0.5 - o1101) * period));
+    float s0011 = _perlinDotGrad4(mod(cell + o0011, period), mod(t - o0011, sign(0.5 - o0011) * period));
+    float s1011 = _perlinDotGrad4(mod(cell + o1011, period), mod(t - o1011, sign(0.5 - o1011) * period));
+    float s0111 = _perlinDotGrad4(mod(cell + o0111, period), mod(t - o0111, sign(0.5 - o0111) * period));
+    float s1111 = _perlinDotGrad4(mod(cell + o1111, period), mod(t - o1111, sign(0.5 - o1111) * period));
 
     // Perform quadlinear interpolation with a smootherstep factor
     vec4 i000_s100_s010_s110 = mix(
@@ -455,7 +480,7 @@ float perlinNoise(vec4 p, vec4 period) {
 }
 
 float perlinNoise(vec4 p) {
-    return perlinNoise(p, vec4(FLT_MAX));
+    return perlinNoise(p, vec4(FLT_MAX_CONSEC));
 }
 
 // Estimates the gradient for `voronoiAntialias`. This gradient isn't stable to rotation of the
@@ -497,11 +522,11 @@ struct Voronoi1D {
 
 Voronoi1D voronoiNoise(float p, float period) {
     Voronoi1D result;
-    result.dist2 = FLT_MAX;
+    result.dist2 = INF;
     float cell = floor(p);
 
     for (int offset = -1; offset <= 1; ++offset) {
-        uint hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+        uint hashed = hash(int(mod(cell + offset, period)));
         uint id = hashed;
         float point = float(hashed) / UINT_MAX + offset;
         float dist2 = abs(point - fract(p));
@@ -516,7 +541,7 @@ Voronoi1D voronoiNoise(float p, float period) {
 }
 
 Voronoi1D voronoiNoise(float p) {
-    return voronoiNoise(p, FLT_MAX);
+    return voronoiNoise(p, FLT_MAX_CONSEC);
 }
 
 // A one dimensional Voronoi noise sample that contains the nearest two features.
@@ -529,12 +554,12 @@ struct Voronoi1DF1F2 {
 Voronoi1DF1F2 voronoiNoiseF1F2(float p, float period) {
     Voronoi1DF1F2 result;
     for (uint i = 0; i < 2; ++i) {
-        result.dist2[i] = FLT_MAX;
+        result.dist2[i] = INF;
     }
     float cell = floor(p);
 
     for (int offset = -1; offset <= 1; ++offset) {
-        uint hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+        uint hashed = hash(int(mod(cell + offset, period)));
         uint id = hashed;
         float point = float(hashed) / UINT_MAX + offset;
         float dist2 = abs(point - fract(p));
@@ -557,7 +582,7 @@ Voronoi1DF1F2 voronoiNoiseF1F2(float p, float period) {
 }
 
 Voronoi1DF1F2 voronoiNoiseF1F2(float p) {
-    return voronoiNoiseF1F2(p, FLT_MAX);
+    return voronoiNoiseF1F2(p, FLT_MAX_CONSEC);
 }
 
 struct Voronoi2D {
@@ -568,13 +593,13 @@ struct Voronoi2D {
 
 Voronoi2D voronoiNoise(vec2 p, vec2 period) {
     Voronoi2D result;
-    result.dist2 = FLT_MAX;
+    result.dist2 = INF;
     vec2 cell = floor(p);
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             vec2 offset = vec2(x, y);
-            uvec2 hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+            uvec2 hashed = hash(ivec2(mod(cell + offset, period)));
             uint id = hashed.x;
             vec2 point = vec2(hashed) / UINT_MAX + offset;
             float dist2 = length2(point - fract(p));
@@ -590,7 +615,7 @@ Voronoi2D voronoiNoise(vec2 p, vec2 period) {
 }
 
 Voronoi2D voronoiNoise(vec2 p) {
-    return voronoiNoise(p, vec2(FLT_MAX));
+    return voronoiNoise(p, vec2(FLT_MAX_CONSEC));
 }
 
 struct Voronoi2DF1F2 {
@@ -602,14 +627,14 @@ struct Voronoi2DF1F2 {
 Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p, vec2 period) {
     Voronoi2DF1F2 result;
     for (uint i = 0; i < 2; ++i) {
-        result.dist2[i] = FLT_MAX;
+        result.dist2[i] = INF;
     }
     vec2 cell = floor(p);
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             vec2 offset = vec2(x, y);
-            uvec2 hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+            uvec2 hashed = hash(ivec2(mod(cell + offset, period)));
             uint id = hashed.x;
             vec2 point = vec2(hashed) / UINT_MAX + offset;
             float dist2 = length2(point - fract(p));
@@ -633,7 +658,7 @@ Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p, vec2 period) {
 }
 
 Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p) {
-    return voronoiNoiseF1F2(p, vec2(FLT_MAX));
+    return voronoiNoiseF1F2(p, vec2(FLT_MAX_CONSEC));
 }
 
 struct Voronoi3D {
@@ -644,14 +669,14 @@ struct Voronoi3D {
 
 Voronoi3D voronoiNoise(vec3 p, vec3 period) {
     Voronoi3D result;
-    result.dist2 = FLT_MAX;
+    result.dist2 = INF;
     vec3 cell = floor(p);
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
             for (int z = -1; z <= 1; ++z) {
                 vec3 offset = vec3(x, y, z);
-                uvec3 hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+                uvec3 hashed = hash(ivec3(mod(cell + offset, period)));
                 uint id = hashed.x;
                 vec3 point = vec3(hashed) / UINT_MAX + offset;
                 float dist2 = length2(point - fract(p));
@@ -668,7 +693,7 @@ Voronoi3D voronoiNoise(vec3 p, vec3 period) {
 }
 
 Voronoi3D voronoiNoise(vec3 p) {
-    return voronoiNoise(p, vec3(FLT_MAX));
+    return voronoiNoise(p, vec3(FLT_MAX_CONSEC));
 }
 
 struct Voronoi3DF1F2 {
@@ -680,7 +705,7 @@ struct Voronoi3DF1F2 {
 Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
     Voronoi3DF1F2 result;
     for (uint i = 0; i < 2; ++i) {
-        result.dist2[i] = FLT_MAX;
+        result.dist2[i] = INF;
     }
     vec3 cell = floor(p);
 
@@ -688,7 +713,7 @@ Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
         for (int y = -1; y <= 1; ++y) {
             for (int z = -1; z <= 1; ++z) {
                 vec3 offset = vec3(x, y, z);
-                uvec3 hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+                uvec3 hashed = hash(ivec3(mod(cell + offset, period)));
                 uint id = hashed.x;
                 vec3 point = vec3(hashed) / UINT_MAX + offset;
                 float dist2 = length2(point - fract(p));
@@ -713,7 +738,7 @@ Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
 }
 
 Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p) {
-    return voronoiNoiseF1F2(p, vec3(FLT_MAX));
+    return voronoiNoiseF1F2(p, vec3(FLT_MAX_CONSEC));
 }
 
 struct Voronoi4D {
@@ -724,7 +749,7 @@ struct Voronoi4D {
 
 Voronoi4D voronoiNoise(vec4 p, vec4 period) {
     Voronoi4D result;
-    result.dist2 = FLT_MAX;
+    result.dist2 = INF;
     vec4 cell = floor(p);
 
     for (int x = -1; x <= 1; ++x) {
@@ -732,7 +757,7 @@ Voronoi4D voronoiNoise(vec4 p, vec4 period) {
             for (int z = -1; z <= 1; ++z) {
                 for (int w = -1; w <= 1; ++w) {
                     vec4 offset = vec4(x, y, z, w);
-                    uvec4 hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+                    uvec4 hashed = hash(ivec4(mod(cell + offset, period)));
                     uint id = hashed.x;
                     vec4 point = vec4(hashed) / UINT_MAX + offset;
                     float dist2 = length2(point - fract(p));
@@ -750,7 +775,7 @@ Voronoi4D voronoiNoise(vec4 p, vec4 period) {
 }
 
 Voronoi4D voronoiNoise(vec4 p) {
-    return voronoiNoise(p, vec4(FLT_MAX));
+    return voronoiNoise(p, vec4(FLT_MAX_CONSEC));
 }
 
 struct Voronoi4DF1F2 {
@@ -762,7 +787,7 @@ struct Voronoi4DF1F2 {
 Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
     Voronoi4DF1F2 result;
     for (uint i = 0; i < 2; ++i) {
-        result.dist2[i] = FLT_MAX;
+        result.dist2[i] = INF;
     }
     vec4 cell = floor(p);
 
@@ -771,7 +796,7 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
             for (int z = -1; z <= 1; ++z) {
                 for (int w = -1; w <= 1; ++w) {
                     vec4 offset = vec4(x, y, z, w);
-                    uvec4 hashed = hash(floatBitsToInt(mod(cell + offset, period)));
+                    uvec4 hashed = hash(ivec4(mod(cell + offset, period)));
                     uint id = hashed.x;
                     vec4 point = vec4(hashed) / UINT_MAX + offset;
                     float dist2 = length2(point - fract(p));
@@ -797,7 +822,7 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
 }
 
 Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p) {
-    return voronoiNoiseF1F2(p, vec4(FLT_MAX));
+    return voronoiNoiseF1F2(p, vec4(FLT_MAX_CONSEC));
 }
 
 // In practice you likely want to just write out the FBM yourself since that's more flexible. That
@@ -821,7 +846,7 @@ float valueFbm(genType p, genType period, float hurst, uint octaves, bool turbul
     return result / peak; \
 } \
 float valueFbm(genType p, float hurst, uint octaves, bool turbulence) { \
-    return valueFbm(p, genType(FLT_MAX), hurst, octaves, turbulence); \
+    return valueFbm(p, genType(FLT_MAX_CONSEC), hurst, octaves, turbulence); \
 }
 
 _GBMS_DEF_VALUE_FBM(float)
@@ -847,7 +872,7 @@ float perlinFbm(genType p, genType period, float hurst, uint octaves, bool turbu
     return result; \
 } \
 float perlinFbm(genType p, float hurst, uint octaves, bool turbulence) { \
-    return perlinFbm(p, genType(FLT_MAX), hurst, octaves, turbulence); \
+    return perlinFbm(p, genType(FLT_MAX_CONSEC), hurst, octaves, turbulence); \
 }
 
 _GBMS_DEF_PERLIN_FBM(float)
@@ -875,7 +900,7 @@ float voronoiFbm(genType p, genType period, float hurst, uint octaves, bool turb
     return result / peak; \
 } \
 float voronoiFbm(genType p, float hurst, uint octaves, bool turbulence) { \
-    return voronoiFbm(p, genType(FLT_MAX), hurst, octaves, turbulence); \
+    return voronoiFbm(p, genType(FLT_MAX_CONSEC), hurst, octaves, turbulence); \
 }
 
 _GBMS_DEF_VORONOI_FBM(float)
