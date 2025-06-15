@@ -844,6 +844,7 @@ _GBMS_DEF_PERLIN_FBM(vec4)
 
 #define _GBMS_DEF_VORONOI_FBM(genType) \
 float voronoiFbm(genType p, genType period, float hurst, uint octaves, bool turbulence) { \
+    const float vmax = sqrt(2); /* max voronoi dist sample */ \
     float gain = exp2(-hurst); \
     float scale = 1.0; \
     float amplitude = 1.0; \
@@ -851,7 +852,7 @@ float voronoiFbm(genType p, genType period, float hurst, uint octaves, bool turb
     float peak = 0.0; \
     for(int i = 0; i < octaves; ++i) { \
         float octave = sqrt(voronoiNoise(scale * p, period).dist2); \
-        if (turbulence) octave = abs(mix(-1, 1, octave)); \
+        if (turbulence) octave = abs(mix(-vmax, vmax, octave)); \
         result += amplitude * octave; \
         peak += amplitude; \
         scale *= 2.0; \
