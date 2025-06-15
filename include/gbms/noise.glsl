@@ -108,25 +108,26 @@ float valueNoise(vec3 p) {
 
 float valueNoise(vec4 p, vec4 period) {
     // Get the t value
-    vec4 t = fract(p);
+    vec4 cell = floor(p);
+    vec4 t = p - cell;
 
     // Get the sample coordinates
-    vec4 c0000 = mod(floor(p), period);
-    vec4 c1000 = mod(c0000 + vec4(1, 0, 0, 0), period);
-    vec4 c0100 = mod(c0000 + vec4(0, 1, 0, 0), period);
-    vec4 c1100 = mod(c0000 + vec4(1, 1, 0, 0), period);
-    vec4 c0010 = mod(c0000 + vec4(0, 0, 1, 0), period);
-    vec4 c1010 = mod(c0000 + vec4(1, 0, 1, 0), period);
-    vec4 c0110 = mod(c0000 + vec4(0, 1, 1, 0), period);
-    vec4 c1110 = mod(c0000 + vec4(1, 1, 1, 0), period);
-    vec4 c0001 = mod(c0000 + vec4(0, 0, 0, 1), period);
-    vec4 c1001 = mod(c0000 + vec4(1, 0, 0, 1), period);
-    vec4 c0101 = mod(c0000 + vec4(0, 1, 0, 1), period);
-    vec4 c1101 = mod(c0000 + vec4(1, 1, 0, 1), period);
-    vec4 c0011 = mod(c0000 + vec4(0, 0, 1, 1), period);
-    vec4 c1011 = mod(c0000 + vec4(1, 0, 1, 1), period);
-    vec4 c0111 = mod(c0000 + vec4(0, 1, 1, 1), period);
-    vec4 c1111 = mod(c0000 + vec4(1, 1, 1, 1), period);
+    vec4 c0000 = mod(cell + vec4(0, 0, 0, 0), period);
+    vec4 c1000 = mod(cell + vec4(1, 0, 0, 0), period);
+    vec4 c0100 = mod(cell + vec4(0, 1, 0, 0), period);
+    vec4 c1100 = mod(cell + vec4(1, 1, 0, 0), period);
+    vec4 c0010 = mod(cell + vec4(0, 0, 1, 0), period);
+    vec4 c1010 = mod(cell + vec4(1, 0, 1, 0), period);
+    vec4 c0110 = mod(cell + vec4(0, 1, 1, 0), period);
+    vec4 c1110 = mod(cell + vec4(1, 1, 1, 0), period);
+    vec4 c0001 = mod(cell + vec4(0, 0, 0, 1), period);
+    vec4 c1001 = mod(cell + vec4(1, 0, 0, 1), period);
+    vec4 c0101 = mod(cell + vec4(0, 1, 0, 1), period);
+    vec4 c1101 = mod(cell + vec4(1, 1, 0, 1), period);
+    vec4 c0011 = mod(cell + vec4(0, 0, 1, 1), period);
+    vec4 c1011 = mod(cell + vec4(1, 0, 1, 1), period);
+    vec4 c0111 = mod(cell + vec4(0, 1, 1, 1), period);
+    vec4 c1111 = mod(cell + vec4(1, 1, 1, 1), period);
 
     // Get the sample values, integer seed for better hash since it's a whole number
     float s0000 = rand(uvec4(ivec4(c0000)));
@@ -180,13 +181,13 @@ float valueNoise(vec4 p) {
 float _perlinDotGrad1(float cell, float p) {
     // Mimics `_perlinDotGrad*` API to show how the algorithm generalizes even though we don't
     // really need to pull this out into a function here.
-    return dot(mix(-1, 1, rand(cell)), p);
+    return dot(mix(-1, 1, rand(uint(int(cell)))), p);
 }
 
 float perlinNoise(float p, float period) {
     // Get the cell and t value
     float cell = floor(p);
-    float t = fract(p);
+    float t = p - cell;
 
     // Get the sample offsets
     const float o0 = 0;
@@ -197,7 +198,7 @@ float perlinNoise(float p, float period) {
     float s1 = _perlinDotGrad1(mod(cell + o1, period), mod(t - o1, sign(0.5 - o1) * period));
 
     // Perform linear interpolation with a smootherstep factor
-    return mix(s0, s1, smootherstep(fract(p)));
+    return mix(s0, s1, smootherstep(t));
 }
 
 float perlinNoise(float p) {
@@ -213,29 +214,21 @@ float _perlinDotGrad2(vec2 cell, vec2 p) {
     // - We cast the cell to an integer before hashing to better utilize the input space, otherwise
     //   the modulo results in a bad hash. It must be signed since it may be negative.
     switch (hash(ivec2(cell)).x % 8) {
-        case 0:
-            return dot(vec2(-1, -1), p);
-        case 1:
-            return dot(vec2(-1, 0), p);
-        case 2:
-            return dot(vec2(-1, 1), p);
-        case 3:
-            return dot(vec2(0, -1), p);
-        case 4:
-            return dot(vec2(0, 1), p);
-        case 5:
-            return dot(vec2(1, -1), p);
-        case 6:
-            return dot(vec2(1, 0), p);
-        case 7:
-            return dot(vec2(1, 1), p);
+        case 0: return -p.x + -p.y;
+        case 1: return -p.x + 0;
+        case 2: return -p.x + p.y;
+        case 3: return 0 + -p.y;
+        case 4: return 0 + p.y;
+        case 5: return p.x + -p.y;
+        case 6: return p.x + 0;
+        case 7: return p.x + p.y;
     }
 }
 
 float perlinNoise(vec2 p, vec2 period) {
     // Get the cell and t value
     vec2 cell = floor(p);
-    vec2 t = fract(p);
+    vec2 t = p - cell;
 
     // Get the sample offsets
     const vec2 o00 = vec2(0, 0);
@@ -267,41 +260,29 @@ float _perlinDotGrad3(vec3 cell, vec3 p) {
     // Duplicate cases make modulo an even multiple, they following a tetrahedron to avoid bias:
     // https://mrl.cs.nyu.edu/~perlin/paper445.pdf
     switch (hash(ivec3(cell)).x % 16) {
-        case 0:
-            return dot(vec3(-1, -1, 0), p);
-        case 1:
-            return dot(vec3(-1, 0, -1), p);
-        case 2:
-            return dot(vec3(-1, 0, 1), p);
-        case 3:
-            return dot(vec3(0, 1, -1), p);
-        case 4:
-            return dot(vec3(0, 1, 1), p);
-        case 5:
-            return dot(vec3(1, -1, 0), p);
-        case 6:
-            return dot(vec3(1, 0, -1), p);
-        case 7:
-            return dot(vec3(1, 0, 1), p);
+        case 0: return -p.x + -p.y + 0;
+        case 1: return -p.x + 0 + -p.z;
+        case 2: return -p.x + 0 + p.z;
+        case 3: return 0 + p.y + -p.z;
+        case 4: return 0 + p.y + p.z;
+        case 5: return p.x + -p.y + 0;
+        case 6: return p.x + 0 + -p.z;
+        case 7: return p.x + 0 + p.z;
         case 8:
-        case 9:
-            return dot(vec3(1, 1, 0), p);
+        case 9: return p.x + p.y + 0;
         case 10:
-        case 11:
-            return dot(vec3(-1, 1, 0), p);
+        case 11: return -p.x + p.y + 0;
         case 12:
-        case 13:
-            return dot(vec3(0, -1, 1), p);
+        case 13: return 0 + -p.y + p.z;
         case 14:
-        case 15:
-            return dot(vec3(0, -1, -1), p);
+        case 15: return 0 + -p.y + -p.z;
     }
 }
 
 float perlinNoise(vec3 p, vec3 period) {
     // Get the cell and t value
     vec3 cell = floor(p);
-    vec3 t = fract(p);
+    vec3 t = p - cell;
 
     // Get the sample offsets
     const vec3 o000 = vec3(0, 0, 0);
@@ -347,77 +328,45 @@ float perlinNoise(vec3 p) {
 float _perlinDotGrad4(vec4 cell, vec4 p) {
     // See `_perlinDotGrad2` for an explanation.
     switch (hash(ivec4(cell)).x % 32) {
-        case 0:
-            return dot(vec4(-1, -1, -1, 0), p);
-        case 1:
-            return dot(vec4(-1, -1, 0, -1), p);
-        case 2:
-            return dot(vec4(-1, -1, 0, 1), p);
-        case 3:
-            return dot(vec4(-1, -1, 1, 0), p);
-        case 4:
-            return dot(vec4(-1, 0, -1, -1), p);
-        case 5:
-            return dot(vec4(-1, 0, -1, 1), p);
-        case 6:
-            return dot(vec4(-1, 0, 1, -1), p);
-        case 7:
-            return dot(vec4(-1, 0, 1, 1), p);
-        case 8:
-            return dot(vec4(-1, 1, -1, 0), p);
-        case 9:
-            return dot(vec4(-1, 1, 0, -1), p);
-        case 10:
-            return dot(vec4(-1, 1, 0, 1), p);
-        case 11:
-            return dot(vec4(-1, 1, 1, 0), p);
-        case 12:
-            return dot(vec4(0, -1, -1, -1), p);
-        case 13:
-            return dot(vec4(0, -1, -1, 1), p);
-        case 14:
-            return dot(vec4(0, -1, 1, -1), p);
-        case 15:
-            return dot(vec4(0, -1, 1, 1), p);
-        case 16:
-            return dot(vec4(0, 1, -1, -1), p);
-        case 17:
-            return dot(vec4(0, 1, -1, 1), p);
-        case 18:
-            return dot(vec4(0, 1, 1, -1), p);
-        case 19:
-            return dot(vec4(0, 1, 1, 1), p);
-        case 20:
-            return dot(vec4(1, -1, -1, 0), p);
-        case 21:
-            return dot(vec4(1, -1, 0, -1), p);
-        case 22:
-            return dot(vec4(1, -1, 0, 1), p);
-        case 23:
-            return dot(vec4(1, -1, 1, 0), p);
-        case 24:
-            return dot(vec4(1, 0, -1, -1), p);
-        case 25:
-            return dot(vec4(1, 0, -1, 1), p);
-        case 26:
-            return dot(vec4(1, 0, 1, -1), p);
-        case 27:
-            return dot(vec4(1, 0, 1, 1), p);
-        case 28:
-            return dot(vec4(1, 1, -1, 0), p);
-        case 29:
-            return dot(vec4(1, 1, 0, -1), p);
-        case 30:
-            return dot(vec4(1, 1, 0, 1), p);
-        case 31:
-            return dot(vec4(1, 1, 1, 0), p);
+        case 0: return -p.x + -p.y + -p.z + 0;
+        case 1: return -p.x + -p.y + 0 + -p.w;
+        case 2: return -p.x + -p.y + 0 + p.w;
+        case 3: return -p.x + -p.y + p.z + 0;
+        case 4: return -p.x + 0 + -p.z + -p.w;
+        case 5: return -p.x + 0 + -p.z + p.w;
+        case 6: return -p.x + 0 + p.z + -p.w;
+        case 7: return -p.x + 0 + p.z + p.w;
+        case 8: return -p.x + p.y + -p.z + 0;
+        case 9: return -p.x + p.y + 0 + -p.w;
+        case 10: return -p.x + p.y + 0 + p.w;
+        case 11: return -p.x + p.y + p.z + 0;
+        case 12: return 0 + -p.y + -p.z + -p.w;
+        case 13: return 0 + -p.y + -p.z + p.w;
+        case 14: return 0 + -p.y + p.z + -p.w;
+        case 15: return 0 + -p.y + p.z + p.w;
+        case 16: return 0 + p.y + -p.z + -p.w;
+        case 17: return 0 + p.y + -p.z + p.w;
+        case 18: return 0 + p.y + p.z + -p.w;
+        case 19: return 0 + p.y + p.z + p.w;
+        case 20: return p.x + -p.y + -p.z + 0;
+        case 21: return p.x + -p.y + 0 + -p.w;
+        case 22: return p.x + -p.y + 0 + p.w;
+        case 23: return p.x + -p.y + p.z + 0;
+        case 24: return p.x + 0 + -p.z + -p.w;
+        case 25: return p.x + 0 + -p.z + p.w;
+        case 26: return p.x + 0 + p.z + -p.w;
+        case 27: return p.x + 0 + p.z + p.w;
+        case 28: return p.x + p.y + -p.z + 0;
+        case 29: return p.x + p.y + 0 + -p.w;
+        case 30: return p.x + p.y + 0 + p.w;
+        case 31: return p.x + p.y + p.z + 0;
     }
 }
 
 float perlinNoise(vec4 p, vec4 period) {
     // Get the cell and t value
     vec4 cell = floor(p);
-    vec4 t = fract(p);
+    vec4 t = p - cell;
 
     // Get the sample offsets
     const vec4 o0000 = vec4(0, 0, 0, 0);
