@@ -11,19 +11,20 @@
 #include "geom.glsl"
 
 float valueNoise(float p, float period) {
-    // Get the t value
-    float t = fract(p);
+    // Calculate the cell and t value
+    float cell = floor(p);
+    float t = p - cell;
 
     // Get the sample coordinates
-    float c0 = mod(floor(p), period);
-    float c1 = mod(c0 + 1.0, period);
+    float c0 = mod(cell + 0.0, period);
+    float c1 = mod(cell + 1.0, period);
 
     // Get the sample values
-    float s0 = rand(c0);
-    float s1 = rand(c1);
+    float s0 = rand(uint(int(c0)));
+    float s1 = rand(uint(int(c1)));
 
     // Perform linear interpolation with a smootherstep factor
-    return mix(s0, s1, smootherstep(fract(p)));
+    return mix(s0, s1, smootherstep(t));
 }
 
 float valueNoise(float p) {
@@ -31,20 +32,21 @@ float valueNoise(float p) {
 }
 
 float valueNoise(vec2 p, vec2 period) {
-    // Calculate the t value
-    vec2 t = fract(p);
+    // Calculate the cell and t value
+    vec2 cell = floor(p);
+    vec2 t = p - cell;
 
     // Get the sample coordinates
-    vec2 c00 = mod(floor(p), period);
-    vec2 c10 = mod(c00 + vec2(1, 0), period);
-    vec2 c01 = mod(c00 + vec2(0, 1), period);
-    vec2 c11 = mod(c00 + vec2(1, 1), period);
+    vec2 c00 = mod(cell + vec2(0, 0), period);
+    vec2 c10 = mod(cell + vec2(1, 0), period);
+    vec2 c01 = mod(cell + vec2(0, 1), period);
+    vec2 c11 = mod(cell + vec2(1, 1), period);
 
-    // Get the samples
-    float s00 = rand(c00);
-    float s10 = rand(c10);
-    float s01 = rand(c01);
-    float s11 = rand(c11);
+    // Get the sample values, integer seed for better hash since it's a whole number
+    float s00 = rand(uvec2(ivec2(c00)));
+    float s10 = rand(uvec2(ivec2(c10)));
+    float s01 = rand(uvec2(ivec2(c01)));
+    float s11 = rand(uvec2(ivec2(c11)));
 
     // Perform bilinear interpolation with a smootherstep factor
     vec2 i0_i1 = mix(vec2(s00, s10), vec2(s01, s11), smootherstep(t.y));
@@ -60,27 +62,28 @@ float valueNoise(vec2 p) {
 
 float valueNoise(vec3 p, vec3 period) {
     // Get the t value
-    vec3 t = fract(p);
+    vec3 cell = floor(p);
+    vec3 t = p - cell;
 
     // Get the sample coordinates
-    vec3 c000 = mod(floor(p), period);
-    vec3 c100 = mod(c000 + vec3(1, 0, 0), period);
-    vec3 c010 = mod(c000 + vec3(0, 1, 0), period);
-    vec3 c110 = mod(c000 + vec3(1, 1, 0), period);
-    vec3 c001 = mod(c000 + vec3(0, 0, 1), period);
-    vec3 c101 = mod(c000 + vec3(1, 0, 1), period);
-    vec3 c011 = mod(c000 + vec3(0, 1, 1), period);
-    vec3 c111 = mod(c000 + vec3(1, 1, 1), period);
+    vec3 c000 = mod(cell + vec3(0, 0, 0), period);
+    vec3 c100 = mod(cell + vec3(1, 0, 0), period);
+    vec3 c010 = mod(cell + vec3(0, 1, 0), period);
+    vec3 c110 = mod(cell + vec3(1, 1, 0), period);
+    vec3 c001 = mod(cell + vec3(0, 0, 1), period);
+    vec3 c101 = mod(cell + vec3(1, 0, 1), period);
+    vec3 c011 = mod(cell + vec3(0, 1, 1), period);
+    vec3 c111 = mod(cell + vec3(1, 1, 1), period);
 
-    // Get the sample values
-    float s000 = rand(c000);
-    float s100 = rand(c100);
-    float s010 = rand(c010);
-    float s110 = rand(c110);
-    float s001 = rand(c001);
-    float s101 = rand(c101);
-    float s011 = rand(c011);
-    float s111 = rand(c111);
+    // Get the sample values, integer seed for better hash since it's a whole number
+    float s000 = rand(uvec3(ivec3(c000)));
+    float s100 = rand(uvec3(ivec3(c100)));
+    float s010 = rand(uvec3(ivec3(c010)));
+    float s110 = rand(uvec3(ivec3(c110)));
+    float s001 = rand(uvec3(ivec3(c001)));
+    float s101 = rand(uvec3(ivec3(c101)));
+    float s011 = rand(uvec3(ivec3(c011)));
+    float s111 = rand(uvec3(ivec3(c111)));
 
     // Perform trilinear interpolation with a smootherstep factor
     vec4 i00_i10_i01_i11 = mix(
@@ -125,23 +128,23 @@ float valueNoise(vec4 p, vec4 period) {
     vec4 c0111 = mod(c0000 + vec4(0, 1, 1, 1), period);
     vec4 c1111 = mod(c0000 + vec4(1, 1, 1, 1), period);
 
-    // Get the sample values
-    float s0000 = rand(c0000);
-    float s1000 = rand(c1000);
-    float s0100 = rand(c0100);
-    float s1100 = rand(c1100);
-    float s0010 = rand(c0010);
-    float s1010 = rand(c1010);
-    float s0110 = rand(c0110);
-    float s1110 = rand(c1110);
-    float s0001 = rand(c0001);
-    float s1001 = rand(c1001);
-    float s0101 = rand(c0101);
-    float s1101 = rand(c1101);
-    float s0011 = rand(c0011);
-    float s1011 = rand(c1011);
-    float s0111 = rand(c0111);
-    float s1111 = rand(c1111);
+    // Get the sample values, integer seed for better hash since it's a whole number
+    float s0000 = rand(uvec4(ivec4(c0000)));
+    float s1000 = rand(uvec4(ivec4(c1000)));
+    float s0100 = rand(uvec4(ivec4(c0100)));
+    float s1100 = rand(uvec4(ivec4(c1100)));
+    float s0010 = rand(uvec4(ivec4(c0010)));
+    float s1010 = rand(uvec4(ivec4(c1010)));
+    float s0110 = rand(uvec4(ivec4(c0110)));
+    float s1110 = rand(uvec4(ivec4(c1110)));
+    float s0001 = rand(uvec4(ivec4(c0001)));
+    float s1001 = rand(uvec4(ivec4(c1001)));
+    float s0101 = rand(uvec4(ivec4(c0101)));
+    float s1101 = rand(uvec4(ivec4(c1101)));
+    float s0011 = rand(uvec4(ivec4(c0011)));
+    float s1011 = rand(uvec4(ivec4(c1011)));
+    float s0111 = rand(uvec4(ivec4(c0111)));
+    float s1111 = rand(uvec4(ivec4(c1111)));
 
     // Perform quadlinear interpolation with a smootherstep factor
     vec4 i000_s100_s010_s110 = mix(
