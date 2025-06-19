@@ -34,6 +34,7 @@
 
 #include "srgb.glsl"
 #include "geom.glsl"
+#include "ease.glsl"
 
 
 // Returns the approximate gradient of the SDF for antialiasing. This could be calculated more
@@ -43,27 +44,25 @@ float sdGradient(float sdf) {
     return fwidthFine(sdf);
 }
 
-// Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
-// produces  visibly worse antialiasing.
-float sdSampleSrgb(float sdf, float gradient) {
+// Samples a SDF, returns an alpha value.
+float sdSampleAlpha(float sdf, float gradient) {
     float threshold2 = gradient * 0.5;
     return clamp(ilerp(threshold2, -threshold2, sdf), 0, 1);
 }
 
-// Similar to `sdSample`, but does not convert to linear space. This is faster than `sdSample` but
-// produces  visibly worse antialiasing.
-float sdSampleSrgb(float sdf) {
-    return sdSampleSrgb(sdf, fwidthFine(sdf));
+// Samples a SDF, returns an alpha value.
+float sdSampleAlpha(float sdf) {
+    return sdSampleAlpha(sdf, fwidthFine(sdf));
 }
 
-// Samples a SDF.
-float sdSample(float sdf, float gradient) {
-    return srgbToLinear(sdSampleSrgb(sdf, gradient));
+// Samples a SDF, returns a linear color value.
+float sdSampleValue(float sdf, float gradient) {
+    return srgbToLinear(sdSampleAlpha(sdf, gradient));
 }
 
-// Samples a SDF.
-float sdSample(float sdf) {
-    return srgbToLinear(sdSampleSrgb(sdf, fwidthFine(sdf)));
+// Samples a SDF, returns a linear color value.
+float sdSampleValue(float sdf) {
+    return srgbToLinear(sdSampleAlpha(sdf, fwidthFine(sdf)));
 }
 
 // Debug output for an SDF.
