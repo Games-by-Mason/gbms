@@ -6,7 +6,7 @@
 float linearToSrgb(float linear) {
     // The color component transfer function from the SRGB specification:
     // https://www.w3.org/Graphics/Color/srgb
-    if (linear <= 0.031308) {
+    if (linear <= 0.0031308) {
         return 12.92 * linear;
     } else {
         return fma(1.055, pow(linear, 1.0 / 2.4), -0.055);
