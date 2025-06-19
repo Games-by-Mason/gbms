@@ -1,3 +1,7 @@
+// These functions are mirrored in `gpu.ext`:
+//
+// https://github.com/Games-by-Mason/gbms
+
 #ifndef INCLUDE_GBMS_SRGB
 #define INCLUDE_GBMS_SRGB
 

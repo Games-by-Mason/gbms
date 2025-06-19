@@ -2,6 +2,10 @@
 //
 // Conventions:
 // * Following glsl `texture` conventions, `p` is the sample position in texture coordinates
+//
+// These functions are mirrored in `geom`:
+//
+// https://github.com/Games-by-Mason/geom
 
 #ifndef INCLUDE_GBMS_NOISE
 #define INCLUDE_GBMS_NOISE
