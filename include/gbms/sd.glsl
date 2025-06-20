@@ -44,25 +44,15 @@ float sdGradient(float sdf) {
     return fwidthFine(sdf);
 }
 
-// Samples a SDF, returns an alpha value.
-float sdSampleAlpha(float sdf, float gradient) {
+// Samples a SDF with an explicit gradient.
+float sdSample(float sdf, float gradient) {
     float threshold2 = gradient * 0.5;
     return clamp(ilerp(threshold2, -threshold2, sdf), 0, 1);
 }
 
-// Samples a SDF, returns an alpha value.
-float sdSampleAlpha(float sdf) {
-    return sdSampleAlpha(sdf, fwidthFine(sdf));
-}
-
-// Samples a SDF, returns a linear color value.
-float sdSampleValue(float sdf, float gradient) {
-    return srgbToLinear(sdSampleAlpha(sdf, gradient));
-}
-
-// Samples a SDF, returns a linear color value.
-float sdSampleValue(float sdf) {
-    return srgbToLinear(sdSampleAlpha(sdf, fwidthFine(sdf)));
+// Samples a SDF
+float sdSample(float sdf) {
+    return sdSample(sdf, sdGradient(sdf));
 }
 
 // Debug output for an SDF.
