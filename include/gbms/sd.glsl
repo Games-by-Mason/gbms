@@ -36,24 +36,25 @@
 #include "geom.glsl"
 #include "ease.glsl"
 
-
-// Returns the approximate gradient of the SDF for antialiasing. This could be calculated more
-// precisely by taking length of vec2(dx, dy), but the difference isn't visually perceptible for the
-// purposes of antialiasing.
-float sdGradient(float sdf) {
-    return fwidthFine(sdf);
-}
-
 // Samples a SDF with an explicit gradient.
 float sdSample(float sdf, float gradient) {
     float threshold2 = gradient * 0.5;
     return clamp(ilerp(threshold2, -threshold2, sdf), 0, 1);
 }
 
-// Samples a SDF
-float sdSample(float sdf) {
-    return sdSample(sdf, sdGradient(sdf));
-}
+#ifdef GL_FRAGMENT_SHADER
+    // Returns the approximate gradient of the SDF for antialiasing. This could be calculated more
+    // precisely by taking length of vec2(dx, dy), but the difference isn't visually perceptible for the
+    // purposes of antialiasing.
+    float sdGradient(float sdf) {
+        return fwidthFine(sdf);
+    }
+
+    // Samples a SDF
+    float sdSample(float sdf) {
+        return sdSample(sdf, sdGradient(sdf));
+    }
+#endif
 
 // Debug output for an SDF.
 vec4 sdDebug(float sdf, float scale) {

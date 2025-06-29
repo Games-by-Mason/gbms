@@ -439,13 +439,6 @@ float perlinNoise(vec4 p) {
     return perlinNoise(p, vec4(FLT_MAX_CONSEC));
 }
 
-// Estimates the gradient for `voronoiAntialias`. This gradient isn't stable to rotation of the
-// coordinate system, but it's close enough that the artifacts shouldn't be visible for the expected
-// usage.
-float voronoiGradient(vec2 p) {
-    return compSum(fwidthCoarse(p)) / 4;
-}
-
 // Returns the blend factor to antialias 2D Vornoi noise. Other dimensions must be first projected
 // onto the 2D plane being rendered, or alternatively, you may just sample them multiple times--see
 // `aa.glsl` for useful antialiasing kernels.
@@ -457,9 +450,18 @@ float voronoiAntialias(vec2 p, vec2[2] points, float grad) {
     return 1.0 - clamp(remap(0, grad, 0.5, 1, dist_to_midpoint), 0.5, 1);
 }
 
-float voronoiAntialias(vec2 p, vec2[2] points) {
-    return voronoiAntialias(p, points, voronoiGradient(p));
-}
+#ifdef GL_FRAGMENT_SHADER
+    // Estimates the gradient for `voronoiAntialias`. This gradient isn't stable to rotation of the
+    // coordinate system, but it's close enough that the artifacts shouldn't be visible for the expected
+    // usage.
+    float voronoiGradient(vec2 p) {
+        return compSum(fwidthCoarse(p)) / 4;
+    }
+
+    float voronoiAntialias(vec2 p, vec2[2] points) {
+        return voronoiAntialias(p, points, voronoiGradient(p));
+    }
+#endif
 
 float voronoiAntialias(vec3 p, vec3[2] points, float grad) {
     vec3 line = normalize(points[1] - points[0]);
