@@ -1,3 +1,6 @@
+#ifndef INCLUDE_GBMS_SDF
+#define INCLUDE_GBMS_SDF
+
 // Signed distance field functions, mostly adapted from Inigo Quilez's work:
 //
 // https://iquilezles.org/articles/distfunctions2d/
@@ -28,9 +31,6 @@
 // to play with depending on your needs. Here's a good write up:
 //
 // https://iquilezles.org/articles/smin/
-
-#ifndef INCLUDE_GBMS_SDF
-#define INCLUDE_GBMS_SDF
 
 #include "srgb.glsl"
 #include "geom.glsl"

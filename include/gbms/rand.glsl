@@ -1,3 +1,6 @@
+#ifndef INCLUDE_GBMS_RAND
+#define INCLUDE_GBMS_RAND
+
 // Convenience wrappers around `hash` that return random vectors or scalars between 0 and 1.
 //
 // See `hash.glsl` for more info on what algorithms are used. Note that 1 -> N hashes where N > 1
@@ -7,9 +10,6 @@
 // These functions are mirrored in `geom`:
 //
 // https://github.com/Games-by-Mason/geom
-
-#ifndef INCLUDE_GBMS_RAND
-#define INCLUDE_GBMS_RAND
 
 #include "hash.glsl"
 

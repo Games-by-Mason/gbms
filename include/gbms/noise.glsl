@@ -1,3 +1,6 @@
+#ifndef INCLUDE_GBMS_NOISE
+#define INCLUDE_GBMS_NOISE
+
 // Hash based noise functions.
 //
 // Conventions:
@@ -6,9 +9,6 @@
 // These functions are mirrored in `geom`:
 //
 // https://github.com/Games-by-Mason/geom
-
-#ifndef INCLUDE_GBMS_NOISE
-#define INCLUDE_GBMS_NOISE
 
 #include "rand.glsl"
 #include "ease.glsl"

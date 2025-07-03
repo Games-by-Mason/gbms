@@ -1,3 +1,6 @@
+#ifndef INCLUDE_GBMS_HASH
+#define INCLUDE_GBMS_HASH
+
 // Provides a variety of hash functions.
 //
 // Use the named functions when you want a specific algorithm, use `hash` when you just want a
@@ -19,9 +22,6 @@
 // These functions are mirrored in `geom`:
 //
 // https://github.com/Games-by-Mason/geom
-
-#ifndef INCLUDE_GBMS_HASH
-#define INCLUDE_GBMS_HASH
 
 #include "constants.glsl"
 

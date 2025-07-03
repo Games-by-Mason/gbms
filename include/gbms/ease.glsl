@@ -1,11 +1,11 @@
+#ifndef INCLUDE_GBMS_EASE
+#define INCLUDE_GBMS_EASE
+
 // These functions are kept in sync with:
 //
 // https://github.com/Games-by-Mason/Tween/
 // 
 // Documentation on their origin is present in that repo.
-
-#ifndef INCLUDE_GBMS_EASE
-#define INCLUDE_GBMS_EASE
 
 #include "constants.glsl"
 
