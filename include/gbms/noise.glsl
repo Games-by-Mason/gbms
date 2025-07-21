@@ -17,7 +17,7 @@
 float valueNoise(float p, float period) {
     // Calculate the cell and t value
     float cell = floor(p);
-    float t = p - cell;
+    float t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample coordinates
     float c0 = mod(cell + 0.0, period);
@@ -38,7 +38,7 @@ float valueNoise(float p) {
 float valueNoise(vec2 p, vec2 period) {
     // Calculate the cell and t value
     vec2 cell = floor(p);
-    vec2 t = p - cell;
+    vec2 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample coordinates
     vec2 c00 = mod(cell + vec2(0, 0), period);
@@ -67,7 +67,7 @@ float valueNoise(vec2 p) {
 float valueNoise(vec3 p, vec3 period) {
     // Get the t value
     vec3 cell = floor(p);
-    vec3 t = p - cell;
+    vec3 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample coordinates
     vec3 c000 = mod(cell + vec3(0, 0, 0), period);
@@ -113,7 +113,7 @@ float valueNoise(vec3 p) {
 float valueNoise(vec4 p, vec4 period) {
     // Get the t value
     vec4 cell = floor(p);
-    vec4 t = p - cell;
+    vec4 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample coordinates
     vec4 c0000 = mod(cell + vec4(0, 0, 0, 0), period);
@@ -191,7 +191,7 @@ float _perlinDotGrad1(float cell, float p) {
 float perlinNoise(float p, float period) {
     // Get the cell and t value
     float cell = floor(p);
-    float t = p - cell;
+    float t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample offsets
     const float o0 = 0;
@@ -229,10 +229,16 @@ float _perlinDotGrad2(vec2 cell, vec2 p) {
     }
 }
 
+vec2 mod2(vec2 x, vec2 y) {
+    return x - y * floor(x/y);
+
+    return x - y * floor(x/y);
+}
+
 float perlinNoise(vec2 p, vec2 period) {
     // Get the cell and t value
     vec2 cell = floor(p);
-    vec2 t = p - cell;
+    vec2 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample offsets
     const vec2 o00 = vec2(0, 0);
@@ -286,7 +292,7 @@ float _perlinDotGrad3(vec3 cell, vec3 p) {
 float perlinNoise(vec3 p, vec3 period) {
     // Get the cell and t value
     vec3 cell = floor(p);
-    vec3 t = p - cell;
+    vec3 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample offsets
     const vec3 o000 = vec3(0, 0, 0);
@@ -370,7 +376,7 @@ float _perlinDotGrad4(vec4 cell, vec4 p) {
 float perlinNoise(vec4 p, vec4 period) {
     // Get the cell and t value
     vec4 cell = floor(p);
-    vec4 t = p - cell;
+    vec4 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     // Get the sample offsets
     const vec4 o0000 = vec4(0, 0, 0, 0);
@@ -482,7 +488,7 @@ Voronoi1D voronoiNoise(float p, float period) {
     Voronoi1D result;
     result.dist2 = INF;
     float cell = floor(p);
-    float t = p - cell;
+    float t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int offset = -1; offset <= 1; ++offset) {
         uint hashed = hash(int(mod(cell + offset, period)));
@@ -516,7 +522,7 @@ Voronoi1DF1F2 voronoiNoiseF1F2(float p, float period) {
         result.dist2[i] = INF;
     }
     float cell = floor(p);
-    float t = p - cell;
+    float t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int offset = -1; offset <= 1; ++offset) {
         uint hashed = hash(int(mod(cell + offset, period)));
@@ -555,7 +561,7 @@ Voronoi2D voronoiNoise(vec2 p, vec2 period) {
     Voronoi2D result;
     result.dist2 = INF;
     vec2 cell = floor(p);
-    vec2 t = p - cell;
+    vec2 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
@@ -591,7 +597,7 @@ Voronoi2DF1F2 voronoiNoiseF1F2(vec2 p, vec2 period) {
         result.dist2[i] = INF;
     }
     vec2 cell = floor(p);
-    vec2 t = p - cell;
+    vec2 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
@@ -633,7 +639,7 @@ Voronoi3D voronoiNoise(vec3 p, vec3 period) {
     Voronoi3D result;
     result.dist2 = INF;
     vec3 cell = floor(p);
-    vec3 t = p - cell;
+    vec3 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
@@ -671,7 +677,7 @@ Voronoi3DF1F2 voronoiNoiseF1F2(vec3 p, vec3 period) {
         result.dist2[i] = INF;
     }
     vec3 cell = floor(p);
-    vec3 t = p - cell;
+    vec3 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
@@ -715,7 +721,7 @@ Voronoi4D voronoiNoise(vec4 p, vec4 period) {
     Voronoi4D result;
     result.dist2 = INF;
     vec4 cell = floor(p);
-    vec4 t = p - cell;
+    vec4 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
@@ -755,7 +761,7 @@ Voronoi4DF1F2 voronoiNoiseF1F2(vec4 p, vec4 period) {
         result.dist2[i] = INF;
     }
     vec4 cell = floor(p);
-    vec4 t = p - cell;
+    vec4 t = fract(p); // Unlike `p - floor(p)`, this will never dip below 0
 
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
