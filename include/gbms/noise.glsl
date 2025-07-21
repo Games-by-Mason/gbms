@@ -214,25 +214,21 @@ float _perlinDotGrad2(vec2 cell, vec2 p) {
     // - The vector is not supposed to be normalized since the max distance is in fact to a corner.
     // - We return the dot product instead of the gradient itself since the dot product of a vector
     //   with only ones and zeroes is easier to compute than that of one that could hold arbitrary
-    //   values.
+    //   values. We don't use a switch and manually calculate the dot product as that's also slower.
     // - We cast the cell to an integer before hashing to better utilize the input space, otherwise
     //   the modulo results in a bad hash. It must be signed since it may be negative.
-    switch (hash(ivec2(cell)).x % 8) {
-        case 0: return -p.x + -p.y;
-        case 1: return -p.x + 0;
-        case 2: return -p.x + p.y;
-        case 3: return 0 + -p.y;
-        case 4: return 0 + p.y;
-        case 5: return p.x + -p.y;
-        case 6: return p.x + 0;
-        case 7: return p.x + p.y;
-    }
-}
-
-vec2 mod2(vec2 x, vec2 y) {
-    return x - y * floor(x/y);
-
-    return x - y * floor(x/y);
+    // - `pgrad` is not const as this measurably harms performance on Intel GPUs
+    vec2 pgrads[8] = vec2[8](
+        vec2(-1, -1),
+        vec2(-1, +0),
+        vec2(-1, +1),
+        vec2(+0, -1),
+        vec2(+0, +1),
+        vec2(+1, -1),
+        vec2(+1, +0),
+        vec2(+1, +1)
+    );
+    return dot(pgrads[hash(ivec2(cell)).x % 8], p);
 }
 
 float perlinNoise(vec2 p, vec2 period) {
@@ -269,24 +265,25 @@ float _perlinDotGrad3(vec3 cell, vec3 p) {
     //
     // Duplicate cases make modulo an even multiple, they following a tetrahedron to avoid bias:
     // https://mrl.cs.nyu.edu/~perlin/paper445.pdf
-    switch (hash(ivec3(cell)).x % 16) {
-        case 0: return -p.x + -p.y + 0;
-        case 1: return -p.x + 0 + -p.z;
-        case 2: return -p.x + 0 + p.z;
-        case 3: return 0 + p.y + -p.z;
-        case 4: return 0 + p.y + p.z;
-        case 5: return p.x + -p.y + 0;
-        case 6: return p.x + 0 + -p.z;
-        case 7: return p.x + 0 + p.z;
-        case 8:
-        case 9: return p.x + p.y + 0;
-        case 10:
-        case 11: return -p.x + p.y + 0;
-        case 12:
-        case 13: return 0 + -p.y + p.z;
-        case 14:
-        case 15: return 0 + -p.y + -p.z;
-    }
+    vec3 pgrad[16] = vec3[16](
+        vec3(-1, -1, 0),
+        vec3(-1, 0, -1),
+        vec3(-1, 0, 1),
+        vec3(0, 1, -1),
+        vec3(0, 1, 1),
+        vec3(1, -1, 0),
+        vec3(1, 0, -1),
+        vec3(1, 0, 1),
+        vec3(1, 0, 1),
+        vec3(1, 1, 0),
+        vec3(1, 1, 0),
+        vec3(-1, 1, 0),
+        vec3(-1, 1, 0),
+        vec3(0, -1, 1),
+        vec3(0, -1, 1),
+        vec3(0, -1, -1)
+    );
+    return dot(pgrad[hash(ivec3(cell)).x % 16], p);
 }
 
 float perlinNoise(vec3 p, vec3 period) {
@@ -337,40 +334,41 @@ float perlinNoise(vec3 p) {
 
 float _perlinDotGrad4(vec4 cell, vec4 p) {
     // See `_perlinDotGrad2` for an explanation.
-    switch (hash(ivec4(cell)).x % 32) {
-        case 0: return -p.x + -p.y + -p.z + 0;
-        case 1: return -p.x + -p.y + 0 + -p.w;
-        case 2: return -p.x + -p.y + 0 + p.w;
-        case 3: return -p.x + -p.y + p.z + 0;
-        case 4: return -p.x + 0 + -p.z + -p.w;
-        case 5: return -p.x + 0 + -p.z + p.w;
-        case 6: return -p.x + 0 + p.z + -p.w;
-        case 7: return -p.x + 0 + p.z + p.w;
-        case 8: return -p.x + p.y + -p.z + 0;
-        case 9: return -p.x + p.y + 0 + -p.w;
-        case 10: return -p.x + p.y + 0 + p.w;
-        case 11: return -p.x + p.y + p.z + 0;
-        case 12: return 0 + -p.y + -p.z + -p.w;
-        case 13: return 0 + -p.y + -p.z + p.w;
-        case 14: return 0 + -p.y + p.z + -p.w;
-        case 15: return 0 + -p.y + p.z + p.w;
-        case 16: return 0 + p.y + -p.z + -p.w;
-        case 17: return 0 + p.y + -p.z + p.w;
-        case 18: return 0 + p.y + p.z + -p.w;
-        case 19: return 0 + p.y + p.z + p.w;
-        case 20: return p.x + -p.y + -p.z + 0;
-        case 21: return p.x + -p.y + 0 + -p.w;
-        case 22: return p.x + -p.y + 0 + p.w;
-        case 23: return p.x + -p.y + p.z + 0;
-        case 24: return p.x + 0 + -p.z + -p.w;
-        case 25: return p.x + 0 + -p.z + p.w;
-        case 26: return p.x + 0 + p.z + -p.w;
-        case 27: return p.x + 0 + p.z + p.w;
-        case 28: return p.x + p.y + -p.z + 0;
-        case 29: return p.x + p.y + 0 + -p.w;
-        case 30: return p.x + p.y + 0 + p.w;
-        case 31: return p.x + p.y + p.z + 0;
-    }
+    vec4 pgrad[32] = vec4[32](
+        vec4(-1, -1, -1, +0),
+        vec4(-1, -1, +0, -1),
+        vec4(-1, -1, +0, +1),
+        vec4(-1, -1, +1, +0),
+        vec4(-1, +0, -1, -1),
+        vec4(-1, +0, -1, +1),
+        vec4(-1, +0, +1, -1),
+        vec4(-1, +0, +1, +1),
+        vec4(-1, +1, -1, +0),
+        vec4(-1, +1, +0, -1),
+        vec4(-1, +1, +0, +1),
+        vec4(-1, +1, +1, +0),
+        vec4(+0, -1, -1, -1),
+        vec4(+0, -1, -1, +1),
+        vec4(+0, -1, +1, -1),
+        vec4(+0, -1, +1, +1),
+        vec4(+0, +1, -1, -1),
+        vec4(+0, +1, -1, +1),
+        vec4(+0, +1, +1, -1),
+        vec4(+0, +1, +1, +1),
+        vec4(+1, -1, -1, +0),
+        vec4(+1, -1, +0, -1),
+        vec4(+1, -1, +0, +1),
+        vec4(+1, -1, +1, +0),
+        vec4(+1, +0, -1, -1),
+        vec4(+1, +0, -1, +1),
+        vec4(+1, +0, +1, -1),
+        vec4(+1, +0, +1, +1),
+        vec4(+1, +1, -1, +0),
+        vec4(+1, +1, +0, -1),
+        vec4(+1, +1, +0, +1),
+        vec4(+1, +1, +1, +0)
+    );
+    return dot(pgrad[hash(ivec4(cell)).x % 32], p);
 }
 
 float perlinNoise(vec4 p, vec4 period) {
