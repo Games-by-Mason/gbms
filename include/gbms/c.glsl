@@ -14,6 +14,7 @@
 // Macros for C versions of GLSL primitives
 #ifdef __STDC__
 	typedef unsigned int uint;
+	typedef int bool;
 
 	typedef bool bvec2[2];
 	typedef bool bvec3[3];
