@@ -7,10 +7,10 @@
 #define f32BitsToU32 floatBitsToInt
 
 ivec2 unpackU16x2(u32 n) {
-	return ivec2(
-		n & 0x0000FFFF,
-		n >> 16
-	);
+    return ivec2(
+        n & 0x0000FFFF,
+        n >> 16
+    );
 }
 
 #endif

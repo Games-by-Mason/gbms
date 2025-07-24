@@ -4,8 +4,8 @@
 #include "c.glsl"
 
 struct ModTimer {
-	f32 period;
-	f32 seconds;
+    f32 period;
+    f32 seconds;
 };
 EXPORT_STRUCT(ModTimer);
 
