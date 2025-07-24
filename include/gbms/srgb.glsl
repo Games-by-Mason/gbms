@@ -6,8 +6,9 @@
 // https://github.com/Games-by-Mason/gbms
 
 #include "constants.glsl"
+#include "c.glsl"
 
-float linearToSrgb(float linear) {
+f32 linearToSrgb(f32 linear) {
     // The color component transfer function from the SRGB specification:
     // https://www.w3.org/Graphics/Color/srgb
     if (linear <= 0.0031308) {
@@ -35,7 +36,7 @@ vec4 linearToSrgb(vec4 linear) {
 }
 
 
-float srgbToLinear(float srgb) {
+f32 srgbToLinear(f32 srgb) {
     // The inverse of the color component transfer function from the SRGB specification:
     // https://www.w3.org/Graphics/Color/srgb
     if (srgb <= 0.04045) {

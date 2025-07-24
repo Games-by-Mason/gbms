@@ -1,7 +1,12 @@
 #ifndef INCLUDE_GBMS_UNPACK
 #define INCLUDE_GBMS_UNPACK
 
-ivec2 unpackShort2x16(uint n) {
+#include "c.glsl"
+
+#define u32BitsToF32 uintBitsToFloat
+#define f32BitsToU32 floatBitsToInt
+
+ivec2 unpackU16x2(u32 n) {
 	return ivec2(
 		n & 0x0000FFFF,
 		n >> 16

@@ -1,23 +1,25 @@
 #ifndef INCLUDE_GBMS_GEOM
 #define INCLUDE_GBMS_GEOM
 
-float length2(float v) {
+#include "c.glsl"
+
+f32 length2(f32 v) {
 	return dot(v, v);
 }
 
-float length2(vec2 v) {
+f32 length2(vec2 v) {
 	return dot(v, v);
 }
 
-float length2(vec3 v) {
+f32 length2(vec3 v) {
 	return dot(v, v);
 }
 
-float length2(vec4 v) {
+f32 length2(vec4 v) {
 	return dot(v, v);
 }
 
-float outerProd(vec2 a, vec2 b) {
+f32 outerProd(vec2 a, vec2 b) {
 	return fma(a.x, b.y, -b.x * a.y);
 }
 
@@ -25,21 +27,21 @@ vec2 geomProd(vec2 a, vec2 b) {
 	return vec2(outerProd(a, b), dot(a, b));
 }
 
-float compSum(vec2 v) {
+f32 compSum(vec2 v) {
 	return v.x + v.y;
 }
 
-float compSum(vec3 v) {
+f32 compSum(vec3 v) {
 	return v.x + v.y + v.z;
 }
 
-float compSum(vec4 v) {
+f32 compSum(vec4 v) {
 	return v.x + v.y + v.z + v.w;
 }
 
 // Returns a 2D rotor in (xy, a) form.
-vec2 rotor(float rad) {
-	float ha = rad * 0.5;
+vec2 rotor(f32 rad) {
+	f32 ha = rad * 0.5;
 	return vec2(-sin(ha), cos(ha));
 }
 

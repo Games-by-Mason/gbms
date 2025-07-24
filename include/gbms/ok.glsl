@@ -2,6 +2,7 @@
 #define INCLUDE_GBMS_OK
 
 #include "constants.glsl"
+#include "c.glsl"
 
 // Converts linear to OkLab, a perceptual color space.
 //
@@ -56,15 +57,15 @@ vec4 oklabToLinear(vec4 lab)  {
 // Saturation is `C/L`, `ab` must be normalized. 
 //
 // Adapted from here: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
-float oklabMaxSaturation(vec2 ab) {
+f32 oklabMaxSaturation(vec2 ab) {
     // Max saturation will be when one of r, g or b goes below zero.
 
     // Select different coefficients depending on which component goes below zero first
-    float k[5];
+    f32 k[5];
     vec3 w_lms;
 
     if (dot(ab, vec2(-1.88170328, -0.80936493)) > 1) {
-        k = float[5](
+        k = f32[5](
             +1.19086277,
             +1.76576728,
             +0.59662641,
@@ -73,7 +74,7 @@ float oklabMaxSaturation(vec2 ab) {
         );
         w_lms = vec3(4.0767416621, -3.3077115913, 0.2309699292);
     } else if (dot(ab, vec2(1.81444104, -1.19445276)) > 1) {
-        k = float[5](
+        k = f32[5](
             +0.73956515,
             -0.45954404,
             +0.08285427,
@@ -82,7 +83,7 @@ float oklabMaxSaturation(vec2 ab) {
         );
         w_lms = vec3(-1.2684380046, 2.6097574011, -0.3413193965);
     } else {
-        k = float[5](
+        k = f32[5](
             +1.35733652,
             -0.00915799,
             -1.15130210,
@@ -92,7 +93,7 @@ float oklabMaxSaturation(vec2 ab) {
         w_lms = vec3(-0.0041960863, -0.7034186147, 1.7076147010);
     }
 
-    float S = k[0] + k[1] * ab.x + k[2] * ab.y + k[3] * ab.x * ab.x + k[4] * ab.x * ab.y;
+    f32 S = k[0] + k[1] * ab.x + k[2] * ab.y + k[3] * ab.x * ab.x + k[4] * ab.x * ab.y;
 
     vec3 k_lms = ab * mat3x2(
         vec2(+0.3963377774, +0.2158037573),
@@ -119,30 +120,30 @@ float oklabMaxSaturation(vec2 ab) {
 //
 // Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
 vec2 _oklabFindCusp(vec2 ab) {
-    float S_cusp = oklabMaxSaturation(ab);
+    f32 S_cusp = oklabMaxSaturation(ab);
     vec3 rgb_at_max = oklabToLinear(vec3(1, S_cusp * ab));
-    float L_cusp = pow(1.0 / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b), 1.0 / 3.0);
-    float C_cusp = L_cusp * S_cusp;
+    f32 L_cusp = pow(1.0 / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b), 1.0 / 3.0);
+    f32 C_cusp = L_cusp * S_cusp;
     return vec2(L_cusp , C_cusp);
 }
 
 // Toe function for `L_r`.
 // 
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
-float _oklabToe(float x) {
+f32 _oklabToe(f32 x) {
     vec3 k;
     k.x = 0.206;
     k.y = 0.03;
     k.z = (1.0 + k.x) / (1.0 + k.y);
-    float kzx = k.z * x;
-    float term = kzx - k.x;
+    f32 kzx = k.z * x;
+    f32 term = kzx - k.x;
     return 0.5 * (term + sqrt(fma(term, term, 4.0 * k.y * kzx)));
 }
 
 // Inverse toe function for `L_r`.
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#common-code
-float _oklabToeInv(float x) {
+f32 _oklabToeInv(f32 x) {
     vec3 k;
     k.x = 0.206;
     k.y = 0.03;
@@ -165,23 +166,23 @@ vec2 _colorGetStMid(vec2 ab) {
 }
 
 // Adapted from: https://bottosson.github.io/posts/gamutclipping/#intersection-with-srgb-gamut
-float _oklabFindGamutIntersection(float a, float b, float L1, float C1, float L0, vec2 cusp) {
+f32 _oklabFindGamutIntersection(f32 a, f32 b, f32 L1, f32 C1, f32 L0, vec2 cusp) {
     // Find the intersection for upper and lower half separately
     if ((L1 - L0) * cusp.y - (cusp.x - L0) * C1 <= 0.0) {
         return cusp.y * L0 / (C1 * cusp.x + cusp.y * (L0 - L1));
     } else {
-        float t = cusp.y * (L0 - 1.0) / (C1 * (cusp.x - 1.0) + cusp.y * (L0 - L1));
+        f32 t = cusp.y * (L0 - 1.0) / (C1 * (cusp.x - 1.0) + cusp.y * (L0 - L1));
 
-        float dL = L1 - L0;
-        float dC = C1;
+        f32 dL = L1 - L0;
+        f32 dC = C1;
 
         vec3 k_lms = a * vec3(+0.3963377774, -0.1055613458, -0.0894841775)
             + b * vec3(0.2158037573, -0.0638541728, -1.2914855480);
 
         vec3 lms_dt = dL + dC * k_lms;
 
-        float L = L0 * (1.0 - t) + t * L1;
-        float C = t * C1;
+        f32 L = L0 * (1.0 - t) + t * L1;
+        f32 C = t * C1;
 
         vec3 lms1 = L + C * k_lms;
         vec3 lms2 = lms1 * lms1;
@@ -222,12 +223,12 @@ float _oklabFindGamutIntersection(float a, float b, float L1, float C1, float L0
     }
 }
 
-float _oklabFindGamutIntersection(float a, float b, float L1, float C1, float L0) {
+f32 _oklabFindGamutIntersection(f32 a, f32 b, f32 L1, f32 C1, f32 L0) {
     return _oklabFindGamutIntersection(a, b, L1, C1, L0, _oklabFindCusp(vec2(a, b)));
 }
 
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
-void _oklabGetCs(vec3 Lab, out float C_0, out float C_mid, out float C_max) {
+void _oklabGetCs(vec3 Lab, out f32 C_0, out f32 C_mid, out f32 C_max) {
     vec2 cusp = _oklabFindCusp(Lab.yz);
 
     C_max = _oklabFindGamutIntersection(Lab.y, Lab.z, Lab.x, 1.0, Lab.x, cusp);
@@ -235,7 +236,7 @@ void _oklabGetCs(vec3 Lab, out float C_0, out float C_mid, out float C_max) {
     vec2 ST_max = _oklabToSt(cusp);    
     vec2 L_L_inv = vec2(Lab.x, 1.0 - Lab.x);
     vec2 k_mins = L_L_inv * ST_max;
-    float k = C_max / min(k_mins.x, k_mins.y);
+    f32 k = C_max / min(k_mins.x, k_mins.y);
 
     {
         vec2 ST_mid = _colorGetStMid(Lab.yz);
@@ -263,25 +264,25 @@ vec3 okhsvToOklab(vec3 hsv) {
     
     vec2 cusp = _oklabFindCusp(ab);
     vec2 ST_max = _oklabToSt(cusp);
-    float S_0 = 0.5;
-    float k = 1.0 - S_0 / ST_max.x;
+    f32 S_0 = 0.5;
+    f32 k = 1.0 - S_0 / ST_max.x;
 
-    float denominator = fma(-ST_max.y, k * hsv.y, S_0 + ST_max.y);
+    f32 denominator = fma(-ST_max.y, k * hsv.y, S_0 + ST_max.y);
     vec2 LC_v = hsv.y * vec2(S_0, ST_max.y * S_0) / denominator;
     LC_v.x = 1.0 - LC_v.x;
 
     vec2 LC = hsv.z * LC_v;
 
     // then we compensate for both toe and the curved top part of the triangle:
-    float L_vt = _oklabToeInv(LC_v.x);
-    float C_vt = LC_v.y * L_vt / LC_v.x;
+    f32 L_vt = _oklabToeInv(LC_v.x);
+    f32 C_vt = LC_v.y * L_vt / LC_v.x;
 
-    float L_new = _oklabToeInv(LC.x);
+    f32 L_new = _oklabToeInv(LC.x);
     LC.y = LC.y * L_new / LC.x;
     LC.x = L_new;
 
     vec3 rgb_scale = oklabToLinear(vec3(L_vt, ab * vec2(C_vt)));
-    float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
+    f32 scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
     LC *= scale_L;
 
     return vec3(LC.x, LC.y * ab);
@@ -304,15 +305,15 @@ vec4 okhsvToLinear(vec4 hsv) {
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsv-2
 vec3 oklabToOkhsv(vec3 lab) {
     vec2 LC = vec2(lab.x, length(lab.yz));
-    float h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
+    f32 h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
     vec2 ab_ = lab.yz / LC.y;
 
     vec2 cusp = _oklabFindCusp(ab_);
     vec2 ST_max = _oklabToSt(cusp);
-    float S_0 = 0.5;
-    float k = 1.0 - S_0 / ST_max.x;
+    f32 S_0 = 0.5;
+    f32 k = 1.0 - S_0 / ST_max.x;
 
-    float t = ST_max.y / (LC.y + LC.x * ST_max.y);
+    f32 t = ST_max.y / (LC.y + LC.x * ST_max.y);
     vec2 LC_v = t * LC;
 
     vec2 LC_vt;
@@ -320,15 +321,15 @@ vec3 oklabToOkhsv(vec3 lab) {
     LC_vt.y = LC_v.y * LC_vt.x / LC_v.x;
 
     vec3 rgb_scale = oklabToLinear(vec3(LC_vt.x, ab_ * LC_vt.y));
-    float scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
+    f32 scale_L = pow(1.0 / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.0)), 1.0 / 3.0);
     LC /= scale_L;
 
-    float toe = _oklabToe(LC.x);
+    f32 toe = _oklabToe(LC.x);
     LC.y = LC.y * toe / LC.x;
     LC.x = toe;
 
-    float v = LC.x / LC_v.x;
-    float s = (S_0 + ST_max.y) * LC_v.y / fma(ST_max.y, S_0, ST_max.y * k * LC_v.y);
+    f32 v = LC.x / LC_v.x;
+    f32 s = (S_0 + ST_max.y) * LC_v.y / fma(ST_max.y, S_0, ST_max.y * k * LC_v.y);
 
     return vec3(h, s, v);
 }
@@ -352,31 +353,31 @@ vec3 okhslToOklab(vec3 hsl) {
     if (hsl.z == 1.0) return vec3(1.0, 0.0, 0.0); // White
     if (hsl.z == 0.0) return vec3(0.0); // Black
 
-    float r = 2.0 * PI * hsl.x;
+    f32 r = 2.0 * PI * hsl.x;
     vec3 Lab = vec3(_oklabToeInv(hsl.z), cos(r), sin(r));
 
-    float C_0;
-    float C_mid;
-    float C_max;
+    f32 C_0;
+    f32 C_mid;
+    f32 C_max;
     _oklabGetCs(Lab, C_0, C_mid, C_max);
 
-    float mid = 0.8;
-    float mid_inv = 1.25;
+    f32 mid = 0.8;
+    f32 mid_inv = 1.25;
 
-    float C;
+    f32 C;
     if (hsl.y < mid) {
-        float t = mid_inv * hsl.y;
-        float k_1 = mid * C_0;
-        float k_2 = (1.0 - k_1 / C_mid);
+        f32 t = mid_inv * hsl.y;
+        f32 k_1 = mid * C_0;
+        f32 k_2 = (1.0 - k_1 / C_mid);
         C = t * k_1 / (1.0 - k_2 * t);
     } else {
         // This simplification affects the end result slightly, but Björn's Javascript color picker
         // makes the same optimization
-        float t = 5 * (hsl.y - mid);
+        f32 t = 5 * (hsl.y - mid);
 
-        float k_0 = C_mid;
-        float k_1 = (1.0 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
-        float k_2 = (1.0 - k_1 / (C_max - C_mid));
+        f32 k_0 = C_mid;
+        f32 k_1 = (1.0 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
+        f32 k_2 = (1.0 - k_1 / (C_max - C_mid));
         C = k_0 + t * k_1 / (1.0 - k_2 * t);
     }
 
@@ -399,36 +400,36 @@ vec4 okhslToLinear(vec4 hsl) {
 //
 // Adapted from: https://bottosson.github.io/posts/colorpicker/#hsl-2
 vec3 oklabToOkhsl(vec3 lab) {
-    float C = sqrt(lab.y * lab.y + lab.z * lab.z);
+    f32 C = sqrt(lab.y * lab.y + lab.z * lab.z);
     vec3 Lab_ = vec3(lab.x, lab.yz / C);
 
-    float h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
+    f32 h = 0.5 + 0.5 * atan(-lab.z, -lab.y) / PI;
 
-    float C_0;
-    float C_mid;
-    float C_max;
+    f32 C_0;
+    f32 C_mid;
+    f32 C_max;
     _oklabGetCs(Lab_, C_0, C_mid, C_max);
 
-    float mid = 0.8;
-    float mid_inv = 1.25;
+    f32 mid = 0.8;
+    f32 mid_inv = 1.25;
 
-    float s;
+    f32 s;
     if (C < C_mid) {
-        float k_1 = mid * C_0;
-        float k_2 = (1.0 - k_1 / C_mid);
+        f32 k_1 = mid * C_0;
+        f32 k_2 = (1.0 - k_1 / C_mid);
 
-        float t = C / (k_1 + k_2 * C);
+        f32 t = C / (k_1 + k_2 * C);
         s = t * mid;
     } else {
-        float k_0 = C_mid;
-        float k_1 = (1.0 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
-        float k_2 = (1.0 - (k_1) / (C_max - C_mid));
+        f32 k_0 = C_mid;
+        f32 k_1 = (1.0 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
+        f32 k_2 = (1.0 - (k_1) / (C_max - C_mid));
 
-        float t = (C - k_0) / (k_1 + k_2 * (C - k_0));
+        f32 t = (C - k_0) / (k_1 + k_2 * (C - k_0));
         s = mid + (1.0 - mid) * t;
     }
 
-    float l = _oklabToe(Lab_.x);
+    f32 l = _oklabToe(Lab_.x);
 
     return vec3(h, s, l);
 }

@@ -24,11 +24,12 @@
 // https://github.com/Games-by-Mason/geom
 
 #include "constants.glsl"
+#include "c.glsl"
 
 // Melissa O'Neill's PCG PRNG, adapted for use as a hash function.
-uint pcg(uint s) {
-    uint state = s * 747796405u + 2891336453u;
-    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+u32 pcg(u32 s) {
+    u32 state = s * 747796405u + 2891336453u;
+    u32 word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
     return (word >> 22u) ^ word;
 }
 
@@ -74,7 +75,7 @@ uvec4 pcg4d(uvec4 s) {
     return s;
 }
 
-uint hash(uint s) {
+u32 hash(u32 s) {
     return pcg(s);
 }
 
