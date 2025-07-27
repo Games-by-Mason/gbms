@@ -6,26 +6,24 @@
 //
 // Also provides explicitly sized numeric types.
 
-// Typedef C structs to remove the requirement to prefix them with the struct keyword
+// Typedef a struct when interpreted as C to remove the requirement to prefix it with the struct
+// keyword.
 #ifdef __STDC__
-    #define EXPORT_STRUCT(name) typedef struct name name
+    #define TYPEDEF_STRUCT(name) typedef struct name name
 #else
-    #define EXPORT_STRUCT(name)
+    #define TYPEDEF_STRUCT(name)
 #endif
 
-// Macros & typedefs for matching C and GLSL types
+// Macros & typedefs for matching C and GLSL types. Booleans are intentionally left off as C
+// booleans and GLSL booleans follow different sizing rules, you're better off using u32s for
+// booleans in interfaces.
 #ifdef __STDC__
     #include <stdint.h>
 
-    typedef uint32_t bool;
     typedef uint32_t u32;
     typedef int32_t i32;
     typedef float f32;
     typedef double f64;
-
-    typedef struct { bool x; bool y; } bvec2;
-    typedef struct { bool x; bool y; bool z; } bvec3;
-    typedef struct { bool x; bool y; bool z; bool w; } bvec4;
 
     #define bvec2(x, y) (bvec2){ x, y }
     #define bvec3(x, y, z) (bvec3){ x, y, z }

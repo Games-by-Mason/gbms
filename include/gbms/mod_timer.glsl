@@ -7,6 +7,6 @@ struct ModTimer {
     f32 period;
     f32 seconds;
 };
-EXPORT_STRUCT(ModTimer);
+TYPEDEF_STRUCT(ModTimer);
 
 #endif
