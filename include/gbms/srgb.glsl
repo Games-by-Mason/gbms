@@ -63,4 +63,28 @@ vec4 srgbToLinear(vec4 srgb) {
     );
 }
 
+f32 linearToSrgbExtended(f32 linear) {
+    return sign(linear) * linearToSrgb(abs(linear));
+}
+
+vec3 linearToSrgbExtended(vec3 linear) {
+    return sign(linear) * linearToSrgb(abs(linear));
+}
+
+vec4 linearToSrgbExtended(vec4 linear) {
+    return vec4(linearToSrgbExtended(linear.rgb), linear.a);
+}
+
+f32 srgbToLinearExtended(f32 srgb) {
+    return sign(srgb) * srgbToLinear(abs(srgb));
+}
+
+vec3 srgbToLinearExtended(vec3 srgb) {
+    return sign(srgb) * srgbToLinear(abs(srgb));
+}
+
+vec4 srgbToLinearExtended(vec4 srgb) {
+    return vec4(srgbToLinearExtended(srgb.rgb), srgb.a);
+}
+
 #endif
