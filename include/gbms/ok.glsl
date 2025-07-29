@@ -216,7 +216,7 @@ f32 _oklabFindGamutIntersection(f32 a, f32 b, f32 L1, f32 C1, f32 L0, vec2 cusp)
         u_rgb.b = b.y / (b.y * b.y - 0.5 * b.x * b.z);
         t_rgb.b = -b.x * u_rgb.b;
 
-        t_rgb = mix(vec3(FLT_MAX), t_rgb, step(0.0, u_rgb));
+        t_rgb = mix(vec3(F32_MAX), t_rgb, step(0.0, u_rgb));
         t += min(t_rgb.r, min(t_rgb.g, t_rgb.b));
 
         return t;
