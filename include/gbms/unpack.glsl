@@ -3,6 +3,7 @@
 
 #include "c.glsl"
 
+#define unpackF16x2 unpackHalf2x16
 #define u32BitsToF32 uintBitsToFloat
 #define f32BitsToU32 floatBitsToInt
 
