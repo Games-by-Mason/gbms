@@ -61,14 +61,17 @@
     #define dvec3(x, y, z) (dvec3){ x, y, z }
     #define dvec4(x, y, z, w) (dvec3){ x, y, z, w }
 
+    typedef f32 mat2[4];
     typedef f32 mat2x2[4];
     typedef f32 mat2x3[6];
     typedef f32 mat2x4[8];
 
+    typedef f32 mat3[9];
     typedef f32 mat3x2[6];
     typedef f32 mat3x3[9];
     typedef f32 mat3x4[12];
 
+    typedef f32 mat4[16];
     typedef f32 mat4x2[8];
     typedef f32 mat4x3[12];
     typedef f32 mat4x4[16];
