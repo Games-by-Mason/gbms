@@ -3,10 +3,10 @@
 
 #include "c.glsl"
 
-// Returns the blackbody radiation color in linear sRGB for the given temperature in Kelvin.
+// Returns the blackbody radiation color in sRGB for the given temperature in Kelvin.
 //
 // Adapted from https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
-vec3 blackbody(float kelvin) {
+vec3 physBlackbodySrgb(float kelvin) {
     float t = clamp(kelvin, 1000.0, 40000.0) / 100.0;
     
     vec3 wp;
@@ -28,6 +28,11 @@ vec3 blackbody(float kelvin) {
     }
 
     return wp;
+}
+
+// Returns the blackbody radiation color in linear sRGB for the given temperature in Kevlin.
+vec3 physBlackbodyLinear(float kelvin) {
+    return srgbToLinear(physBlackbodySrgb(kelvin));
 }
 
 #endif
