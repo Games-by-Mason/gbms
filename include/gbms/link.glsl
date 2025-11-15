@@ -11,6 +11,11 @@
 //
 // A useful convention is to prefix these link variables with `l_` since they have the same name
 // everywhere, so you can no longer prefix them with `in_`/`out_` as is often conventional.
+//
+// Optional qualifiers like `flat` can precede the variable name, e.g.:
+// ```
+// LINK_VERT_FRAG(location = 3) flat Entity l_entity;
+// ```
 
 #ifdef GL_VERTEX_SHADER
     #define LINK_VERT_FRAG(_layout) layout(_layout) out
