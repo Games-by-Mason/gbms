@@ -25,6 +25,9 @@ const f32 F32_MAX_CONSEC = 16777216.0;
 #endif
 
 const f32 PI = 3.14159265358979323846264338327950288419716939937510;
-const f32 F32_MAX = 3.40282347E+38;
+// Conditional due to https://codeberg.org/ziglang/zig/issues/30041
+#ifndef __STDC__
+	const f32 F32_MAX = 3.40282347E+38;
+#endif
 
 #endif
