@@ -438,11 +438,11 @@ vec4 oklabToOkhsl(vec4 lab) {
     return vec4(oklabToOkhsl(lab.xyz), lab.w);
 }
 
-vec3 colorLinearToOkhsl(vec3 linear) {
+vec3 linearToOkhsl(vec3 linear) {
     return oklabToOkhsl(linearToOklab(linear));
 }
 
-vec4 colorLinearToOkhsl(vec4 linear) {
+vec4 linearToOkhsl(vec4 linear) {
     return oklabToOkhsl(linearToOklab(linear));
 }
 
