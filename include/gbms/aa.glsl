@@ -2,6 +2,36 @@
 #define INCLUDE_GBMS_AA
 
 #include "c.glsl"
+#include "geom.glsl"
+
+#ifdef GL_FRAGMENT_SHADER
+    // Estimates the scale factor for AA offset.
+    f32 aaSize(vec2 texcoord) {
+        return compSum(fwidth(texcoord)) / 2;
+    }
+#endif
+
+// Repeatedly calls body with the local variables `aa_weight` and `aa_offset` set to the
+// antialiasing specified by `kind`. The result variable is necessary to scale the result by the
+// final gain, the AA size can be calculated with `aaSize` if in a fragment shader.
+#define AA_ITER(result, size, kind, body) { \
+    for (uint i = 0; i < aa_ ## kind ## _samples; ++i) { \
+        const f32 aa_weight = aa_ ## kind ## _weights[i]; \
+        const vec2 aa_offset = aa_ ## kind ## _offsets[i] * size; \
+        body \
+    } \
+    result *= aa_ ## kind ## _gain; \
+}
+
+// No antialiasing. Included to make it easy to AB test.
+const u32 aa_none_samples = 1;
+const vec2[aa_none_samples] aa_none_offsets = vec2[aa_none_samples](
+    vec2(+0.00, +0.00)
+);
+const f32[aa_none_samples] aa_none_weights = f32[aa_none_samples](
+    1
+);
+const f32 aa_none_gain = 1;
 
 // Box super sampling is equivalent to a box blur.
 const u32 aa_box1x2_samples = 2;
@@ -152,7 +182,6 @@ const f32[aa_gaussian3x3_no_mid_samples] aa_gaussian3x3_no_mid_weights = f32[aa_
     0.1250, /*0.250,*/ 0.1250,
     0.0625, 0.125, 0.0625
 );
-const f32 aa_gaussian3x3_no_mid_gain = 1.0;
-const f32 aa_gaussian3x3_no_mid_mid_gain = 0.250;
+const f32 aa_gaussian3x3_no_mid_gain = 0.250;
 
 #endif
