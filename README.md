@@ -1,3 +1,3 @@
-# GbMS
+[Moved to Codeberg](https://codeberg.org/Games-by-Mason/mr_shader_library)
 
-The Games by Mason Shader Library.
+This repository is not mirrored.
